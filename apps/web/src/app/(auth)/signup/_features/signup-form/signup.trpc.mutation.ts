@@ -8,6 +8,13 @@ import { SignupSchema } from "./signup.schema";
 export const signupMutation = publicProcedure
   .input(SignupSchema)
   .mutation(async ({ input }) => {
+    if (process.env.REGISTRATION_ENABLED !== "true") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Registration is closed.",
+      });
+    }
+
     try {
       const { email, password } = input;
 

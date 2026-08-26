@@ -4,7 +4,7 @@ import { validateOrigin } from "@/server/api/validate-origin";
 import { validateReviewer } from "@/server/api/validate-reviewer";
 import { checkResourceLimit } from "@/server/auth/subscription";
 import { inngest } from "@/server/inngest";
-import { s3Client } from "@/server/storage";
+import { s3Client, storageProvider } from "@/server/storage";
 import { createAsset } from "@/server/storage/create-asset";
 import { getSignedAssetUrl } from "@/server/storage/get-signed-asset-url";
 import { putObject } from "@better-upload/server/helpers";
@@ -70,7 +70,10 @@ export async function POST(req: NextRequest) {
   const reviewerToken = req.headers.get("x-reviewer-token");
   const reviewer = await validateReviewer(reviewerToken, project.id);
   if (!reviewer) {
-    return NextResponse.json({ error: "Invalid reviewer token" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Invalid reviewer token" },
+      { status: 403 },
+    );
   }
 
   const { allowed } = await checkRateLimit(project.id, "submit");
@@ -194,7 +197,7 @@ export async function POST(req: NextRequest) {
       const asset = await createAsset({
         key,
         bucket,
-        provider: "r2",
+        provider: storageProvider,
         filename: `screenshot.${ext}`,
         mimeType: screenshotField.type,
         size: buffer.length,
@@ -270,7 +273,10 @@ export async function GET(req: NextRequest) {
   const reviewerToken = req.headers.get("x-reviewer-token");
   const reviewer = await validateReviewer(reviewerToken, project.id);
   if (!reviewer) {
-    return NextResponse.json({ error: "Invalid reviewer token" }, { status: 403 });
+    return NextResponse.json(
+      { error: "Invalid reviewer token" },
+      { status: 403 },
+    );
   }
 
   const { allowed } = await checkRateLimit(project.id, "read");

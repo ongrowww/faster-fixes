@@ -41,10 +41,12 @@ Copy `apps/web/.env.example` and fill in the values. The minimum set for a self-
 DOMAIN_NAME="your-domain.com"
 BASE_URL="https://your-domain.com"
 DATABASE_URL="postgresql://user:password@host:5432/db?schema=public"
+DATABASE_ADAPTER="postgres"
 
 # Auth
 BETTER_AUTH_SECRET="<generate with: openssl rand -base64 32>"
 BETTER_AUTH_URL="https://your-domain.com"
+REGISTRATION_ENABLED="true"
 
 # Storage (Cloudflare R2)
 STORAGE_REGION="auto"
@@ -72,7 +74,32 @@ NEXT_PUBLIC_IS_CLOUD="false"
 
 GitHub App variables are optional. Skip them unless you need the GitHub integration. Leave the Stripe variables unset — billing is cloud-only and self-hosted installs don't run it.
 
+To send authentication emails through your own mail server, select SMTP instead
+of Resend or Plunk:
+
+```bash
+MAILER_PROVIDER="smtp"
+SMTP_HOST="mail.example.com"
+SMTP_PORT="587"
+SMTP_SECURE="false"
+SMTP_USER="fasterfixes@example.com"
+SMTP_PASSWORD="..."
+SMTP_FROM="fasterfixes@example.com"
+```
+
 If you prefer AWS S3 over Cloudflare R2, use `AWS_ACCESS_KEY_ID`, `AWS_BUCKET_NAME`, and `AWS_SECRET_ACCESS_KEY` instead of the R2 variables.
+
+For another S3-compatible provider, configure the generic client:
+
+```bash
+STORAGE_PROVIDER="s3"
+STORAGE_ENDPOINT="https://s3.example.com"
+STORAGE_REGION="us-east-1"
+STORAGE_BUCKET_NAME="your-bucket"
+STORAGE_FORCE_PATH_STYLE="false"
+AWS_ACCESS_KEY_ID="..."
+AWS_SECRET_ACCESS_KEY="..."
+```
 
 ## 3. Provision external services
 
@@ -103,7 +130,8 @@ This applies all Prisma migrations and generates the client. For subsequent depl
 After the first deploy:
 
 1. Visit `https://your-domain.com/login` and create the first account (becomes the admin).
-2. Create a project, copy the widget API key, and test the widget in any page.
-3. Check Inngest's dashboard to confirm events are being received.
+2. Set `REGISTRATION_ENABLED="false"` and restart the web container.
+3. Create a project, copy the widget API key, and test the widget in any page.
+4. Check Inngest's dashboard to confirm events are being received.
 
 Your instance is now ready. Point your clients' widgets at `NEXT_PUBLIC_FF_API_ORIGIN` and connect your AI coding agent via the [MCP server](/docs/mcp/setup).

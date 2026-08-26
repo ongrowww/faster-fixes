@@ -1,0 +1,15 @@
+.git
+.github
+.next
+.turbo
+**/.next
+**/.source
+**/.turbo
+**/dist
+**/node_modules
+node_modules
+.env
+.env.*
+!.env.example
+coverage
+advisor-plans

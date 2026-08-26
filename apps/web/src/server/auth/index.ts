@@ -65,7 +65,7 @@ export const auth = betterAuth({
     customSessionPlugin,
     admin(),
     organizationPlugin,
-    stripePlugin,
+    ...(process.env.NEXT_PUBLIC_IS_CLOUD === "true" ? [stripePlugin] : []),
     lastLoginMethod(),
     nextCookies(), // must be last plugin of the array
   ],

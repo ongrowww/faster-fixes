@@ -8,10 +8,12 @@
       "env": [
         "DOMAIN_NAME",
         "DATABASE_URL",
+        "DATABASE_ADAPTER",
 
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
         "BASE_URL",
+        "REGISTRATION_ENABLED",
 
         "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
         "STRIPE_SECRET_KEY",
@@ -24,13 +26,33 @@
         "PLUNK_SECRET_KEY",
         "RESEND_API_KEY",
         "RESEND_SEGMENT_ID",
+        "MAILER_PROVIDER",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_SECURE",
+        "SMTP_USER",
+        "SMTP_PASSWORD",
+        "SMTP_FROM",
 
         "STORAGE_REGION",
         "STORAGE_BUCKET_NAME",
+        "STORAGE_PROVIDER",
+        "STORAGE_ENDPOINT",
+        "STORAGE_FORCE_PATH_STYLE",
         "NEXT_PUBLIC_STORAGE_BASE_URL",
         "R2_ACCOUNT_ID",
         "R2_ACCESS_KEY_ID",
         "R2_SECRET_ACCESS_KEY",
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+
+        "NEXT_PUBLIC_FF_API_ORIGIN",
+        "NEXT_PUBLIC_IS_CLOUD",
+
+        "INNGEST_EVENT_KEY",
+        "INNGEST_SIGNING_KEY",
+        "INNGEST_BASE_URL",
+        "INNGEST_DEV",
 
         "LINEAR_CLIENT_ID",
         "LINEAR_CLIENT_SECRET",

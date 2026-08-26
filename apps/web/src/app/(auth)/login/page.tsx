@@ -32,17 +32,19 @@ export default async function LoginPage() {
             <LoginForm />
           </Suspense>
 
-          <div className="text-center text-sm">
-            <span className="text-muted-foreground">
-              Don&apos;t have an account?{" "}
-            </span>
-            <Link
-              href={signupUrl}
-              className="text-primary font-medium hover:underline"
-            >
-              Sign up
-            </Link>
-          </div>
+          {process.env.REGISTRATION_ENABLED === "true" ? (
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">
+                Don&apos;t have an account?{" "}
+              </span>
+              <Link
+                href={signupUrl}
+                className="text-primary font-medium hover:underline"
+              >
+                Sign up
+              </Link>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

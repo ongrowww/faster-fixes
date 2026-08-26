@@ -11,6 +11,10 @@ export const metadata: Metadata = {
 };
 
 export default async function SignupPage() {
+  if (process.env.REGISTRATION_ENABLED !== "true") {
+    redirect("/login");
+  }
+
   const session = await auth.api.getSession({
     headers: await headers(),
   });
