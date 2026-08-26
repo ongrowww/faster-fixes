@@ -9,7 +9,7 @@ import type { BetterAuthOptions } from "better-auth";
 export const emailVerification: NonNullable<
   BetterAuthOptions["emailVerification"]
 > = {
-  sendOnSignUp: true,
+  sendOnSignUp: process.env.EMAIL_VERIFICATION_REQUIRED !== "false",
   autoSignInAfterVerification: true,
   afterEmailVerification: async (user) => {
     // The middleware will automatically redirect to onboarding since the user
@@ -22,7 +22,7 @@ export const emailVerification: NonNullable<
       data: { userId: user.id },
     });
   },
-  sendVerificationEmail: async ({ user, url }, ctx) => {
+  sendVerificationEmail: async ({ user, url }) => {
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
     });

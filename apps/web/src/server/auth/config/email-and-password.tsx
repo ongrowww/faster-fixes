@@ -8,10 +8,11 @@ export const emailAndPassword: NonNullable<
   BetterAuthOptions["emailAndPassword"]
 > = {
   enabled: true,
-  requireEmailVerification: true,
+  requireEmailVerification:
+    process.env.EMAIL_VERIFICATION_REQUIRED !== "false",
   autoSignIn: true,
 
-  sendResetPassword: async ({ user, url, token }, request) => {
+  sendResetPassword: async ({ user, url }) => {
     try {
       const normalizedEmail = user.email.toLowerCase().trim();
       const from = SENDER_EMAIL;
