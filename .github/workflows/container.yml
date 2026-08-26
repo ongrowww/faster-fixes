@@ -16,13 +16,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - target: runner
-            suffix: ""
-          - target: migrator
-            suffix: -migrator
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -37,16 +30,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push image
+      - name: Build and push application image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          target: ${{ matrix.target }}
+          target: runner
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/ongrowww/faster-fixes:${{ github.sha }}${{ matrix.suffix }}
-            ghcr.io/ongrowww/faster-fixes:edge${{ matrix.suffix }}
-          cache-from: type=gha,scope=${{ matrix.target }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.target }}
+            ghcr.io/ongrowww/faster-fixes:${{ github.sha }}
+            ghcr.io/ongrowww/faster-fixes:edge
+          cache-from: type=gha,scope=runner
+          cache-to: type=gha,mode=max,scope=runner
+
+      - name: Build and push migration image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          target: migrator
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/ongrowww/faster-fixes:${{ github.sha }}-migrator
+            ghcr.io/ongrowww/faster-fixes:edge-migrator
+          cache-from: type=gha,scope=migrator
+          cache-to: type=gha,mode=max,scope=migrator
