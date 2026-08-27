@@ -26,6 +26,8 @@ jobs:
           test "$(uname -m)" = "x86_64"
           DOCKER_CLI_VERSION="29.7.1"
           DOCKER_CLI_SHA256="0fcea2a8b4d1b54ccc9010e3451b78504a369d414f37eb3bb79300e1b5c22ce6"
+          DOCKER_BUILDX_VERSION="0.36.1"
+          DOCKER_BUILDX_SHA256="48af8a397ebd60178778bf63611dbcebe5f5e7a9be90eb9147b24b9587455778"
           DOCKER_CLI_DIR="$(mktemp -d)"
           cleanup() {
             rm -rf -- "$DOCKER_CLI_DIR"
@@ -38,7 +40,16 @@ jobs:
             | sha256sum --check --strict -
           tar -xzf "$DOCKER_CLI_DIR/docker.tgz" -C "$DOCKER_CLI_DIR"
           install -m 0755 "$DOCKER_CLI_DIR/docker/docker" /usr/local/bin/docker
+          curl -fsSL \
+            "https://github.com/docker/buildx/releases/download/v${DOCKER_BUILDX_VERSION}/buildx-v${DOCKER_BUILDX_VERSION}.linux-amd64" \
+            --output "$DOCKER_CLI_DIR/docker-buildx"
+          printf '%s  %s\n' "$DOCKER_BUILDX_SHA256" "$DOCKER_CLI_DIR/docker-buildx" \
+            | sha256sum --check --strict -
+          install -D -m 0755 \
+            "$DOCKER_CLI_DIR/docker-buildx" \
+            /usr/local/libexec/docker/cli-plugins/docker-buildx
           docker version
+          docker buildx version
 
       - name: App- und Migrationsimage bauen und veröffentlichen
         shell: bash
