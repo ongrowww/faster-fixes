@@ -12,6 +12,7 @@ load_secret() {
       exit 1
     fi
     export "${variable_name}=$(cat "$file_path")"
+    eval "unset $file_variable_name"
   fi
 }
 
@@ -34,6 +35,14 @@ if [ -z "${DATABASE_URL:-}" ]; then
   : "${DATABASE_PASSWORD:?DATABASE_PASSWORD or DATABASE_URL is required}"
   DATABASE_URL="postgresql://${DATABASE_USER:-fasterfixes}:${DATABASE_PASSWORD}@${DATABASE_HOST:-postgres}:5432/${DATABASE_NAME:-fasterfixes}?schema=public"
   export DATABASE_URL
+fi
+
+if [ "$(id -u)" = "0" ] && [ -n "${RUN_AS_UID:-}" ] && [ -n "${RUN_AS_GID:-}" ]; then
+  exec setpriv \
+    --reuid="$RUN_AS_UID" \
+    --regid="$RUN_AS_GID" \
+    --clear-groups \
+    -- "$@"
 fi
 
 exec "$@"

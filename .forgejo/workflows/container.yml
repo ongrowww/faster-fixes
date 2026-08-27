@@ -43,6 +43,7 @@ jobs:
       - name: App- und Migrationsimage bauen und veröffentlichen
         shell: bash
         env:
+          DOCKER_BUILDKIT: "1"
           REGISTRY_USERNAME: ${{ forgejo.actor }}
           REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: |

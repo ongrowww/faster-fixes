@@ -7,7 +7,7 @@ ENV PATH=$PNPM_HOME:$PATH
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends ca-certificates openssl \
+    && apt-get install --yes --no-install-recommends ca-certificates openssl util-linux \
     && rm -rf /var/lib/apt/lists/*
 
 RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
@@ -50,14 +50,14 @@ RUN pnpm build
 FROM base AS migrator
 
 ENV NODE_ENV=production
+ENV RUN_AS_UID=1000
+ENV RUN_AS_GID=1000
 
 LABEL org.opencontainers.image.source="https://git.ongrow.de/ongrow/faster-fixes"
 
 COPY --from=dependencies --chown=node:node /app /app
 
 RUN chmod 0755 /app/docker/entrypoint.sh
-
-USER node
 
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["pnpm", "--dir", "packages/database", "exec", "prisma", "migrate", "deploy"]
@@ -68,13 +68,15 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+ENV RUN_AS_UID=1001
+ENV RUN_AS_GID=1001
 
 LABEL org.opencontainers.image.source="https://git.ongrow.de/ongrow/faster-fixes"
 
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends ca-certificates openssl \
+    && apt-get install --yes --no-install-recommends ca-certificates openssl util-linux \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs nextjs
@@ -85,8 +87,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/
 COPY --from=builder --chown=nextjs:nodejs /app/docker/entrypoint.sh ./docker/entrypoint.sh
 
 RUN chmod 0755 /app/docker/entrypoint.sh
-
-USER nextjs
 
 EXPOSE 3000
 
