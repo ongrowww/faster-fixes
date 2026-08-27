@@ -58,6 +58,7 @@
         "INNGEST_DEV",
 
         "GITHUB_APP_ID",
+        "GITHUB_APP_NAME",
         "GITHUB_PRIVATE_KEY",
         "GITHUB_WEBHOOK_SECRET",
 
