@@ -1,0 +1,105 @@
+name: Container bauen und veröffentlichen
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: git.ongrow.de/ongrow/faster-fixes
+  COMMIT_SHA: ${{ forgejo.sha }}
+
+jobs:
+  publish:
+    runs-on: docker
+    permissions:
+      contents: read
+    steps:
+      - name: Repository auschecken
+        uses: https://data.forgejo.org/actions/checkout@v4
+
+      - name: Docker-CLI installieren
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "x86_64"
+          DOCKER_CLI_VERSION="29.7.1"
+          DOCKER_CLI_SHA256="0fcea2a8b4d1b54ccc9010e3451b78504a369d414f37eb3bb79300e1b5c22ce6"
+          DOCKER_CLI_DIR="$(mktemp -d)"
+          cleanup() {
+            rm -rf -- "$DOCKER_CLI_DIR"
+          }
+          trap cleanup EXIT
+          curl -fsSL \
+            "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_CLI_VERSION}.tgz" \
+            --output "$DOCKER_CLI_DIR/docker.tgz"
+          printf '%s  %s\n' "$DOCKER_CLI_SHA256" "$DOCKER_CLI_DIR/docker.tgz" \
+            | sha256sum --check --strict -
+          tar -xzf "$DOCKER_CLI_DIR/docker.tgz" -C "$DOCKER_CLI_DIR"
+          install -m 0755 "$DOCKER_CLI_DIR/docker/docker" /usr/local/bin/docker
+          docker version
+
+      - name: App- und Migrationsimage bauen und veröffentlichen
+        shell: bash
+        env:
+          REGISTRY_USERNAME: ${{ forgejo.actor }}
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+          cleanup() {
+            docker logout git.ongrow.de >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          printf '%s' "$REGISTRY_TOKEN" \
+            | docker login git.ongrow.de \
+                --username "$REGISTRY_USERNAME" \
+                --password-stdin
+
+          APP_COMMIT_TAG="${IMAGE_NAME}:sha-${COMMIT_SHA}"
+          MIGRATOR_COMMIT_TAG="${IMAGE_NAME}:sha-${COMMIT_SHA}-migrator"
+
+          docker build \
+            --target runner \
+            --tag "${IMAGE_NAME}:main" \
+            --tag "$APP_COMMIT_TAG" \
+            .
+          docker push "${IMAGE_NAME}:main"
+          docker push "$APP_COMMIT_TAG"
+
+          docker build \
+            --target migrator \
+            --tag "${IMAGE_NAME}:main-migrator" \
+            --tag "$MIGRATOR_COMMIT_TAG" \
+            .
+          docker push "${IMAGE_NAME}:main-migrator"
+          docker push "$MIGRATOR_COMMIT_TAG"
+
+          APP_DIGEST_REF="$(docker image inspect \
+            "$APP_COMMIT_TAG" --format '{{index .RepoDigests 0}}')"
+          MIGRATOR_DIGEST_REF="$(docker image inspect \
+            "$MIGRATOR_COMMIT_TAG" --format '{{index .RepoDigests 0}}')"
+
+          case "$APP_DIGEST_REF" in
+            "$IMAGE_NAME"@sha256:*) ;;
+            *)
+              echo "Ungültiger App-Digest: $APP_DIGEST_REF" >&2
+              exit 1
+              ;;
+          esac
+          case "$MIGRATOR_DIGEST_REF" in
+            "$IMAGE_NAME"@sha256:*) ;;
+            *)
+              echo "Ungültiger Migrations-Digest: $MIGRATOR_DIGEST_REF" >&2
+              exit 1
+              ;;
+          esac
+
+          {
+            echo "## Veröffentlichte Images"
+            echo
+            echo "App: \`$APP_DIGEST_REF\`"
+            echo
+            echo "Migration: \`$MIGRATOR_DIGEST_REF\`"
+          } >> "$GITHUB_STEP_SUMMARY"

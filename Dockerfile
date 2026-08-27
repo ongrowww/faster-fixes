@@ -51,6 +51,8 @@ FROM base AS migrator
 
 ENV NODE_ENV=production
 
+LABEL org.opencontainers.image.source="https://git.ongrow.de/ongrow/faster-fixes"
+
 COPY --from=dependencies --chown=node:node /app /app
 
 RUN chmod 0755 /app/docker/entrypoint.sh
@@ -66,6 +68,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+
+LABEL org.opencontainers.image.source="https://git.ongrow.de/ongrow/faster-fixes"
 
 WORKDIR /app
 
