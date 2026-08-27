@@ -50,6 +50,7 @@ RUN pnpm build
 FROM base AS migrator
 
 ENV NODE_ENV=production
+ENV COREPACK_HOME=/opt/corepack
 ENV RUN_AS_UID=1000
 ENV RUN_AS_GID=1000
 
@@ -57,7 +58,10 @@ LABEL org.opencontainers.image.source="https://git.ongrow.de/ongrow/faster-fixes
 
 COPY --from=dependencies --chown=node:node /app /app
 
-RUN chmod 0755 /app/docker/entrypoint.sh
+RUN cp -a /root/.cache/node/corepack /opt/corepack \
+    && chown -R node:node /opt/corepack \
+    && chmod -R u=rwX,go=rX /opt/corepack \
+    && chmod 0755 /app/docker/entrypoint.sh
 
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["pnpm", "--dir", "packages/database", "exec", "prisma", "migrate", "deploy"]
