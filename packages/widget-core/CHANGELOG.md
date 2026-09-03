@@ -5,6 +5,7 @@
 ### Added
 
 - Optional `reviewImageId` client configuration that binds feedback requests to a project Review Image.
+- Launcher labels for choosing page feedback or image review, including localized overrides.
 
 ## 0.0.7
 

@@ -278,6 +278,7 @@ export function FloatingButton() {
     setShowList,
     position,
     reviewImagesUrl,
+    labels,
   } = useFeedbackContext();
   const [launcherOpen, setLauncherOpen] = useState(false);
   const launcherRef = useRef<HTMLDivElement | null>(null);
@@ -449,13 +450,13 @@ export function FloatingButton() {
       onMouseLeave={handleToolbarMouseLeave}
       role={!isActive ? "button" : undefined}
       tabIndex={!isActive ? 0 : undefined}
-      aria-label={!isActive ? "Start feedback" : undefined}
+      aria-label={!isActive ? labels.startFeedback : undefined}
       data-ff-widget
     >
       {launcherOpen && !isActive && reviewImagesUrl && (
         <div
           role="group"
-          aria-label="Choose feedback type"
+          aria-label={labels.chooseFeedbackType}
           style={{
             position: "absolute",
             bottom: expandsUp ? 52 : undefined,
@@ -479,7 +480,7 @@ export function FloatingButton() {
             }}
             style={launcherActionStyle}
           >
-            Comment on this page
+            {labels.commentOnPage}
           </button>
           <a
             href={reviewImagesUrl}
@@ -488,7 +489,7 @@ export function FloatingButton() {
             onClick={(event) => event.stopPropagation()}
             style={{ ...launcherActionStyle, textDecoration: "none" }}
           >
-            Review images
+            {labels.reviewImages}
           </a>
         </div>
       )}

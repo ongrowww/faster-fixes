@@ -44,6 +44,10 @@ export const DEFAULT_LABELS = {
   hideResolved: "Hide resolved",
   feedbackListTitle: "Feedback",
   emptyList: "No feedback on this page",
+  startFeedback: "Start feedback",
+  chooseFeedbackType: "Choose feedback type",
+  commentOnPage: "Comment on this page",
+  reviewImages: "Review images",
 } as const;
 
 export type Labels = typeof DEFAULT_LABELS;
