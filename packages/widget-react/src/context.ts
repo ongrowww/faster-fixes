@@ -78,6 +78,7 @@ export type FeedbackContextValue = {
   labels: Labels;
   position: WidgetPosition;
   color: string;
+  reviewImagesUrl?: string;
 };
 
 export const FeedbackContext = createContext<FeedbackContextValue | null>(null);
@@ -85,7 +86,9 @@ export const FeedbackContext = createContext<FeedbackContextValue | null>(null);
 export function useFeedbackContext() {
   const ctx = useContext(FeedbackContext);
   if (!ctx) {
-    throw new Error("useFeedbackContext must be used within a FeedbackProvider");
+    throw new Error(
+      "useFeedbackContext must be used within a FeedbackProvider",
+    );
   }
   return ctx;
 }

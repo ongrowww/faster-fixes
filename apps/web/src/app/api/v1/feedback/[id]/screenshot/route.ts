@@ -1,7 +1,5 @@
 import { checkRateLimit } from "@/server/api/check-rate-limit";
-import { resolveProject } from "@/server/api/resolve-project";
-import { validateOrigin } from "@/server/api/validate-origin";
-import { validateReviewer } from "@/server/api/validate-reviewer";
+import { resolveFeedbackContext } from "@/server/api/resolve-feedback-context";
 import { s3Client, storageProvider } from "@/server/storage";
 import { createAsset } from "@/server/storage/create-asset";
 import { getSignedAssetUrl } from "@/server/storage/get-signed-asset-url";
@@ -18,23 +16,14 @@ const ALLOWED_SCREENSHOT_TYPES = ["image/png", "image/jpeg", "image/webp"];
 export async function PUT(req: NextRequest, { params }: RouteParams) {
   const { id } = await params;
 
-  const project = await resolveProject(req.headers.get("x-api-key"));
-  if (!project) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!validateOrigin(req.headers, project.domain)) {
-    return NextResponse.json({ error: "Origin not allowed" }, { status: 403 });
-  }
-
-  const reviewerToken = req.headers.get("x-reviewer-token");
-  const reviewer = await validateReviewer(reviewerToken, project.id);
-  if (!reviewer) {
+  const context = await resolveFeedbackContext(req.headers);
+  if (!context) {
     return NextResponse.json(
-      { error: "Invalid reviewer token" },
+      { error: "Invalid feedback context" },
       { status: 403 },
     );
   }
+  const { project, reviewImage } = context;
 
   const { allowed } = await checkRateLimit(project.id, "submit");
   if (!allowed) {
@@ -45,7 +34,11 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   }
 
   const feedback = await prisma.feedback.findFirst({
-    where: { id, projectId: project.id },
+    where: {
+      id,
+      projectId: project.id,
+      reviewImageId: reviewImage?.id ?? null,
+    },
   });
   if (!feedback) {
     return NextResponse.json({ error: "Feedback not found" }, { status: 404 });

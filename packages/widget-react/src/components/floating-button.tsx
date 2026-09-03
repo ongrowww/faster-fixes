@@ -243,9 +243,10 @@ function ToolbarControl({
         type="button"
         style={{
           ...toolbarButtonStyle,
-          backgroundColor: tone === "active"
-            ? "rgba(255,255,255,0.3)"
-            : "rgba(255,255,255,0.15)",
+          backgroundColor:
+            tone === "active"
+              ? "rgba(255,255,255,0.3)"
+              : "rgba(255,255,255,0.15)",
         }}
         onClick={(e) => {
           e.stopPropagation();
@@ -276,7 +277,10 @@ export function FloatingButton() {
     showList,
     setShowList,
     position,
+    reviewImagesUrl,
   } = useFeedbackContext();
+  const [launcherOpen, setLauncherOpen] = useState(false);
+  const launcherRef = useRef<HTMLDivElement | null>(null);
   const [tooltipsHidden, setTooltipsHidden] = useState(false);
   const [tooltipSessionActive, setTooltipSessionActive] = useState(false);
   const tooltipSessionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -303,12 +307,50 @@ export function FloatingButton() {
 
   function handleTriggerClick() {
     if (isActive) return;
+    if (reviewImagesUrl) {
+      setLauncherOpen((open) => !open);
+      return;
+    }
+    startPageFeedback();
+  }
+
+  function startPageFeedback() {
+    setLauncherOpen(false);
     setActiveFeedback(null);
     setSelectedElement(null);
     setClickCoords(null);
     setScreenshotBlob(null);
     setMode("annotating");
   }
+
+  useEffect(() => {
+    if (!launcherOpen) return;
+    const firstAction =
+      launcherRef.current?.querySelector<HTMLButtonElement>("button");
+    firstAction?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setLauncherOpen(false);
+        requestAnimationFrame(() => launcherRef.current?.focus());
+      }
+    }
+    function handlePointerDown(event: PointerEvent) {
+      if (
+        launcherRef.current &&
+        event.target instanceof Node &&
+        !launcherRef.current.contains(event.target)
+      ) {
+        setLauncherOpen(false);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [launcherOpen]);
 
   function handleShellKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (isActive) return;
@@ -395,6 +437,7 @@ export function FloatingButton() {
 
   return (
     <div
+      ref={launcherRef}
       className={`ff-button ff-toolbar-shell ${classNames.button ?? ""}`}
       style={{
         ...toolbarStyle(isActive ? "expanded" : "collapsed"),
@@ -409,6 +452,46 @@ export function FloatingButton() {
       aria-label={!isActive ? "Start feedback" : undefined}
       data-ff-widget
     >
+      {launcherOpen && !isActive && reviewImagesUrl && (
+        <div
+          role="group"
+          aria-label="Choose feedback type"
+          style={{
+            position: "absolute",
+            bottom: expandsUp ? 52 : undefined,
+            top: expandsUp ? undefined : 52,
+            right: position.includes("right") ? 0 : undefined,
+            left: position.includes("left") ? 0 : undefined,
+            width: 210,
+            padding: 6,
+            border: "1px solid #3f3f46",
+            borderRadius: 10,
+            background: "#18181b",
+            boxShadow: "0 8px 28px rgba(0,0,0,0.35)",
+            font: '500 14px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          }}
+        >
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              startPageFeedback();
+            }}
+            style={launcherActionStyle}
+          >
+            Comment on this page
+          </button>
+          <a
+            href={reviewImagesUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => event.stopPropagation()}
+            style={{ ...launcherActionStyle, textDecoration: "none" }}
+          >
+            Review images
+          </a>
+        </div>
+      )}
       <div
         className="ff-toolbar-trigger-content"
         data-visible={!isActive}
@@ -428,3 +511,19 @@ export function FloatingButton() {
     </div>
   );
 }
+
+const launcherActionStyle: React.CSSProperties = {
+  display: "flex",
+  width: "100%",
+  minHeight: 44,
+  alignItems: "center",
+  padding: "0 12px",
+  border: 0,
+  borderRadius: 7,
+  background: "transparent",
+  color: "#f4f4f5",
+  cursor: "pointer",
+  font: "inherit",
+  textAlign: "left",
+  boxSizing: "border-box",
+};

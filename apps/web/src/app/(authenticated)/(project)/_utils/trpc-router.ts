@@ -44,6 +44,8 @@ import { updateProjectSlackLink } from "../settings/_features/slack/update-link/
 import { regenerateApiKey } from "../settings/_features/regenerate-api-key/regenerate-api-key.trpc.mutation";
 import { updateProject } from "../settings/_features/update/update-project.trpc.mutation";
 import { getProjects } from "./get-projects.trpc.query";
+import { getReviewImages } from "../images/_features/get-review-images.trpc.query";
+import { setReviewImageArchived } from "../images/_features/set-review-image-archived.trpc.mutation";
 
 export const projectsRouter = router({
   list: getProjects,
@@ -58,6 +60,10 @@ export const projectsRouter = router({
     revoke: revokeReviewer,
     restore: restoreReviewer,
     delete: deleteReviewer,
+  }),
+  reviewImages: router({
+    list: getReviewImages,
+    setArchived: setReviewImageArchived,
   }),
   feedback: router({
     list: getFeedback,

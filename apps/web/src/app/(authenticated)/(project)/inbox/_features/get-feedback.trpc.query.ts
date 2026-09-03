@@ -43,6 +43,13 @@ export const getFeedback = protectedProcedure
         screenshot: {
           select: { id: true, key: true, provider: true, bucket: true },
         },
+        reviewImage: {
+          include: {
+            asset: {
+              select: { key: true, bucket: true, filename: true },
+            },
+          },
+        },
         issueLink: {
           select: {
             issueNumber: true,
@@ -95,6 +102,12 @@ export const getFeedback = protectedProcedure
           : null,
         screenshotUrl: f.screenshot
           ? await getSignedAssetUrl(f.screenshot)
+          : null,
+        reviewImage: f.reviewImage
+          ? {
+              filename: f.reviewImage.asset.filename,
+              url: await getSignedAssetUrl(f.reviewImage.asset),
+            }
           : null,
         metadata: f.metadata as Record<string, unknown> | null,
         issueLink: f.issueLink,

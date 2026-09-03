@@ -4,6 +4,10 @@ import { RejectUpload, route, type Router } from "@better-upload/server";
 import { toRouteHandler } from "@better-upload/server/adapters/next";
 import { prisma } from "@workspace/db";
 import { z } from "zod";
+import crypto from "crypto";
+import { resolveProject } from "@/server/api/resolve-project";
+import { validateReviewer } from "@/server/api/validate-reviewer";
+import { checkRateLimit } from "@/server/api/check-rate-limit";
 
 const router: Router = {
   client: s3Client,
@@ -64,6 +68,42 @@ const router: Router = {
         return {
           objectInfo: {
             key: `user-avatars/${session.user.id}/${Date.now()}.${extension}`,
+          },
+        };
+      },
+    }),
+    "review-image": route({
+      fileTypes: ["image/png", "image/jpeg", "image/webp"],
+      maxFileSize: 10 * 1024 * 1024,
+      clientMetadataSchema: z.object({
+        projectId: z.string(),
+      }),
+      onBeforeUpload: async ({ req, file, clientMetadata }) => {
+        const project = await resolveProject(clientMetadata.projectId);
+        if (!project) {
+          throw new RejectUpload("Unknown project.");
+        }
+
+        const reviewer = await validateReviewer(
+          req.headers.get("x-reviewer-token"),
+          project.id,
+        );
+        if (!reviewer) {
+          throw new RejectUpload("Invalid reviewer link.");
+        }
+        const { allowed } = await checkRateLimit(project.id, "submit");
+        if (!allowed) {
+          throw new RejectUpload("Too many uploads. Try again later.");
+        }
+
+        const extension =
+          file.type === "image/jpeg"
+            ? "jpg"
+            : (file.type.split("/")[1] ?? "png");
+
+        return {
+          objectInfo: {
+            key: `review-images/${project.id}/${crypto.randomUUID()}.${extension}`,
           },
         };
       },

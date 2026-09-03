@@ -9,7 +9,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar";
-import { Inbox, Settings2, Users } from "lucide-react";
+import { Images, Inbox, Settings2, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NoProjectsCard } from "./no-projects-card.client";
@@ -29,6 +29,7 @@ export function ProjectNavigation() {
 
   const items = [
     { label: "Inbox", href: "/inbox" as const, icon: Inbox },
+    { label: "Images", href: "/images" as const, icon: Images },
     { label: "Reviewers", href: "/reviewers" as const, icon: Users },
     { label: "Settings", href: "/settings" as const, icon: Settings2 },
   ];

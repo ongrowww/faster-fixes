@@ -4,11 +4,7 @@ import {
   FasterFixesClient,
   resolveReviewerToken,
 } from "@fasterfixes/core";
-import type {
-  Labels,
-  WidgetConfig,
-  WidgetPosition,
-} from "@fasterfixes/core";
+import type { Labels, WidgetConfig, WidgetPosition } from "@fasterfixes/core";
 import type { ClassNames } from "./context.js";
 import { FeedbackProviderCore } from "./feedback-provider-core.js";
 
@@ -91,6 +87,7 @@ export function FeedbackProvider({
       labels={labels}
       captureDiagnostics={captureDiagnostics}
       apiOrigin={apiOrigin ?? DEFAULT_API_ORIGIN}
+      reviewImagesUrl={`${(apiOrigin ?? DEFAULT_API_ORIGIN).replace(/\/$/, "")}/review/images?project=${encodeURIComponent(identifier)}#ff_token=${encodeURIComponent(reviewerToken)}`}
     >
       {children}
     </FeedbackProviderCore>

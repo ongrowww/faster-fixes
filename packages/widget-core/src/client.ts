@@ -12,11 +12,13 @@ import { DEFAULT_API_ORIGIN } from "./constants.js";
 export type ClientOptions = {
   apiKey: string;
   apiOrigin?: string;
+  reviewImageId?: string;
 };
 
 export class FasterFixesClient implements FeedbackClient {
   private apiKey: string;
   private apiOrigin: string;
+  private reviewImageId?: string;
 
   constructor(options: ClientOptions) {
     this.apiKey = options.apiKey;
@@ -24,6 +26,7 @@ export class FasterFixesClient implements FeedbackClient {
       /\/$/,
       "",
     );
+    this.reviewImageId = options.reviewImageId;
   }
 
   private headers(reviewerToken?: string): HeadersInit {
@@ -33,17 +36,21 @@ export class FasterFixesClient implements FeedbackClient {
     if (reviewerToken) {
       h["X-Reviewer-Token"] = reviewerToken;
     }
+    if (this.reviewImageId) {
+      h["X-Review-Image"] = this.reviewImageId;
+    }
     return h;
   }
 
-  private async request<T>(
-    path: string,
-    init: RequestInit,
-  ): Promise<T> {
+  private async request<T>(path: string, init: RequestInit): Promise<T> {
     const res = await fetch(`${this.apiOrigin}${path}`, init);
     if (!res.ok) {
       const body = await res.json().catch(() => ({ error: "Request failed" }));
-      throw new ApiError(res.status, body.error ?? "Request failed", body.details);
+      throw new ApiError(
+        res.status,
+        body.error ?? "Request failed",
+        body.details,
+      );
     }
     // 204 No Content
     if (res.status === 204) return undefined as T;
@@ -62,13 +69,10 @@ export class FasterFixesClient implements FeedbackClient {
     url?: string,
   ): Promise<FeedbackListResponse> {
     const query = url ? `?${new URLSearchParams({ url }).toString()}` : "";
-    return this.request<FeedbackListResponse>(
-      `/api/v1/feedback${query}`,
-      {
-        method: "GET",
-        headers: this.headers(reviewerToken),
-      },
-    );
+    return this.request<FeedbackListResponse>(`/api/v1/feedback${query}`, {
+      method: "GET",
+      headers: this.headers(reviewerToken),
+    });
   }
 
   async createFeedback(
@@ -104,10 +108,7 @@ export class FasterFixesClient implements FeedbackClient {
     });
   }
 
-  async deleteFeedback(
-    id: string,
-    reviewerToken: string,
-  ): Promise<void> {
+  async deleteFeedback(id: string, reviewerToken: string): Promise<void> {
     return this.request<void>(`/api/v1/feedback/${id}`, {
       method: "DELETE",
       headers: this.headers(reviewerToken),

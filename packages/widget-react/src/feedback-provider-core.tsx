@@ -38,6 +38,7 @@ export type FeedbackProviderCoreProps = {
   labels?: Partial<Labels>;
   captureDiagnostics?: boolean;
   apiOrigin?: string;
+  reviewImagesUrl?: string;
   children: React.ReactNode;
 };
 
@@ -61,6 +62,7 @@ export function FeedbackProviderCore({
   labels: customLabels,
   captureDiagnostics = true,
   apiOrigin = DEFAULT_API_ORIGIN,
+  reviewImagesUrl,
   children,
 }: FeedbackProviderCoreProps) {
   const [mode, setMode] = useState<WidgetMode>("idle");
@@ -350,6 +352,7 @@ export function FeedbackProviderCore({
     labels: mergedLabels,
     position: effectivePosition,
     color: effectiveColor,
+    reviewImagesUrl,
   };
 
   return (

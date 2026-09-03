@@ -19,6 +19,7 @@ type FeedbackForIssue = {
   diagnosticTrail?: DiagnosticTrail | null;
   projectId: string;
   dashboardUrl: string;
+  reviewImage?: { filename: string; url: string } | null;
 };
 
 export function formatIssueTitle(comment: string): string {
@@ -43,11 +44,15 @@ export function formatIssueBody(feedback: FeedbackForIssue): string {
   lines.push(quoted);
   lines.push("");
 
+  if (feedback.reviewImage) {
+    lines.push(
+      `**Review image:** [${feedback.reviewImage.filename}](${feedback.reviewImage.url})`,
+    );
+  }
+
   // Page URL
   const displayUrl = feedback.pageUrl.replace(/^https?:\/\//, "");
-  lines.push(
-    `**Page:** [${displayUrl}](${feedback.pageUrl})`,
-  );
+  lines.push(`**Page:** [${displayUrl}](${feedback.pageUrl})`);
 
   // Component path + selector
   const locationParts: string[] = [];
@@ -84,7 +89,9 @@ export function formatIssueBody(feedback: FeedbackForIssue): string {
   }
   if (feedback.os) envParts.push(feedback.os);
   if (feedback.viewportWidth && feedback.viewportHeight) {
-    envParts.push(`${feedback.viewportWidth} \u00d7 ${feedback.viewportHeight}`);
+    envParts.push(
+      `${feedback.viewportWidth} \u00d7 ${feedback.viewportHeight}`,
+    );
   }
 
   if (envParts.length > 0 || feedback.reviewerName) {

@@ -14,6 +14,10 @@ _Avoid_: Issue (reserved for tracker-side artifacts), Ticket, Bug report.
 The end-user of the customer's site who submitted a Feedback through the widget.
 _Avoid_: Reporter, Submitter, User.
 
+**Review Image**:
+An image uploaded by a Reviewer for visual review. A Review Image belongs to one Project and contains regular Feedback pinned to locations on the image.
+_Avoid_: Attachment (too broad), Screenshot (reserved for a Feedback capture).
+
 **Project**:
 A Faster Fixes container scoped to one website (one widget install). Holds Feedback, settings, and at most one tracker link per integration.
 _Avoid_: Site, App, Workspace.
@@ -52,7 +56,7 @@ An external issue-tracking system Faster Fixes can mirror Feedback into. Current
 _Avoid_: Integration target, Sink.
 
 **Notification channel**:
-A category of external connection where Faster Fixes *announces* Feedback one-way, holding no mirror and creating no Issue. First instance: Slack. Distinct from a **Tracker** (two-way, mirrors Feedback as an Issue and converges its state). Not to be confused with a Slack *channel* (the specific room a Project posts into).
+A category of external connection where Faster Fixes _announces_ Feedback one-way, holding no mirror and creating no Issue. First instance: Slack. Distinct from a **Tracker** (two-way, mirrors Feedback as an Issue and converges its state). Not to be confused with a Slack _channel_ (the specific room a Project posts into).
 _Avoid_: Webhook (implementation detail), Sink.
 
 **Installation**:
@@ -69,7 +73,7 @@ A project inside a Jira site (e.g. `PAY`). The per-Project tracker scope a Faste
 The project-level binding from a Faster Fixes Project to an external scope — a Tracker scope (a GitHub repo, a Linear team) or a Notification channel destination (a Slack channel). One per (Project × external system).
 
 **Issue link**:
-The per-Feedback record connecting a single Feedback to its mirrored issue in a Tracker. A Feedback can have at most one issue link per Tracker, but may have one for GitHub *and* one for Linear simultaneously.
+The per-Feedback record connecting a single Feedback to its mirrored issue in a Tracker. A Feedback can have at most one issue link per Tracker, but may have one for GitHub _and_ one for Linear simultaneously.
 
 ### Diagnostics
 
@@ -94,6 +98,8 @@ The fixed-size in-memory store the Widget fills from page load; oldest entries d
 - A **Project** has zero or one **Project link** per **Tracker** (GitHub, Linear)
 - A **Feedback** has zero or one **Issue link** per **Tracker**
 - A **Reviewer** submits **Feedback** through the widget; Reviewers are not authenticated app users
+- A **Project** has many **Review Images**; each Review Image references one **Asset**
+- A **Feedback** belongs either to a website page or to one **Review Image**
 - An **Installation** is owned by an Organization and shared across all Projects in that Organization
 - The same **Feedback** may exist as a GitHub Issue and a Linear Issue at the same time; both are mirrors of the Feedback, not peers of each other
 - A **Notification channel** (Slack) receives one-way announcements of a Feedback; unlike a **Tracker** it holds no mirror, has no **Issue link**, and never feeds state back to the Feedback

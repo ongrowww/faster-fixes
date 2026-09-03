@@ -94,6 +94,33 @@ export function FeedbackDetailPanel({
 
           <Separator />
 
+          {feedback.reviewImage && (
+            <>
+              <div>
+                <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
+                  Review image
+                </h4>
+                <a
+                  href={feedback.reviewImage.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block overflow-hidden rounded-lg border focus-visible:outline-2 focus-visible:outline-offset-2"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={feedback.reviewImage.url}
+                    alt={feedback.reviewImage.filename}
+                    className="max-h-80 w-full object-contain"
+                  />
+                </a>
+                <p className="text-muted-foreground mt-1 truncate text-xs">
+                  {feedback.reviewImage.filename}
+                </p>
+              </div>
+              <Separator />
+            </>
+          )}
+
           {/* Screenshot */}
           <div>
             <h4 className="text-muted-foreground mb-2 text-xs font-medium uppercase">
@@ -127,9 +154,7 @@ export function FeedbackDetailPanel({
             (() => {
               const md = feedback.metadata as Record<string, unknown>;
               const hasContext =
-                md.elementDescription ||
-                md.reactComponentPath ||
-                md.sourceFile;
+                md.elementDescription || md.reactComponentPath || md.sourceFile;
               if (!hasContext) return null;
               return (
                 <>
@@ -186,10 +211,7 @@ export function FeedbackDetailPanel({
 
           <Separator />
 
-          <StatusSelect
-            feedbackId={feedback.id}
-            value={feedback.status}
-          />
+          <StatusSelect feedbackId={feedback.id} value={feedback.status} />
 
           <TrackersSection
             feedbackId={feedback.id}

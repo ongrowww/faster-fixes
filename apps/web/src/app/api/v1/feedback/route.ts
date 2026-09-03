@@ -1,7 +1,4 @@
 import { checkRateLimit } from "@/server/api/check-rate-limit";
-import { resolveProject } from "@/server/api/resolve-project";
-import { validateOrigin } from "@/server/api/validate-origin";
-import { validateReviewer } from "@/server/api/validate-reviewer";
 import { checkResourceLimit } from "@/server/auth/subscription";
 import { inngest } from "@/server/inngest";
 import { s3Client, storageProvider } from "@/server/storage";
@@ -12,6 +9,7 @@ import { prisma } from "@workspace/db";
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { resolveFeedbackContext } from "@/server/api/resolve-feedback-context";
 
 const ConsoleEntrySchema = z.object({
   level: z.enum(["log", "info", "warn", "error", "debug"]),
@@ -57,24 +55,14 @@ export async function POST(req: NextRequest) {
     req.headers.get("content-type"),
   );
 
-  const project = await resolveProject(req.headers.get("x-api-key"));
-  if (!project) {
-    console.warn("[feedback] unauthorized — invalid API key");
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!validateOrigin(req.headers, project.domain)) {
-    return NextResponse.json({ error: "Origin not allowed" }, { status: 403 });
-  }
-
-  const reviewerToken = req.headers.get("x-reviewer-token");
-  const reviewer = await validateReviewer(reviewerToken, project.id);
-  if (!reviewer) {
+  const context = await resolveFeedbackContext(req.headers);
+  if (!context) {
     return NextResponse.json(
-      { error: "Invalid reviewer token" },
+      { error: "Invalid feedback context" },
       { status: 403 },
     );
   }
+  const { project, reviewer, reviewImage } = context;
 
   const { allowed } = await checkRateLimit(project.id, "submit");
   if (!allowed) {
@@ -213,7 +201,10 @@ export async function POST(req: NextRequest) {
       projectId: project.id,
       reviewerId: reviewer.id,
       comment: data.comment,
-      pageUrl: data.pageUrl,
+      pageUrl: reviewImage
+        ? `${req.nextUrl.origin}/review/images/${reviewImage.publicId}?project=${encodeURIComponent(project.publicId)}`
+        : data.pageUrl,
+      reviewImageId: reviewImage?.id,
       clickX: data.clickX,
       clickY: data.clickY,
       selector: data.selector,
@@ -261,23 +252,14 @@ export async function POST(req: NextRequest) {
 
 // GET /api/v1/feedback — fetch feedback for a page
 export async function GET(req: NextRequest) {
-  const project = await resolveProject(req.headers.get("x-api-key"));
-  if (!project) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!validateOrigin(req.headers, project.domain)) {
-    return NextResponse.json({ error: "Origin not allowed" }, { status: 403 });
-  }
-
-  const reviewerToken = req.headers.get("x-reviewer-token");
-  const reviewer = await validateReviewer(reviewerToken, project.id);
-  if (!reviewer) {
+  const context = await resolveFeedbackContext(req.headers);
+  if (!context) {
     return NextResponse.json(
-      { error: "Invalid reviewer token" },
+      { error: "Invalid feedback context" },
       { status: 403 },
     );
   }
+  const { project, reviewImage } = context;
 
   const { allowed } = await checkRateLimit(project.id, "read");
   if (!allowed) {
@@ -293,6 +275,9 @@ export async function GET(req: NextRequest) {
   const feedbackList = await prisma.feedback.findMany({
     where: {
       projectId: project.id,
+      ...(reviewImage
+        ? { reviewImageId: reviewImage.id }
+        : { reviewImageId: null }),
       ...(url ? { pageUrl: url } : {}),
     },
     orderBy: { createdAt: "desc" },
