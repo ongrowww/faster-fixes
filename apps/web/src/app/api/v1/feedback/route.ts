@@ -4,6 +4,7 @@ import { inngest } from "@/server/inngest";
 import { s3Client, storageProvider } from "@/server/storage";
 import { createAsset } from "@/server/storage/create-asset";
 import { getSignedAssetUrl } from "@/server/storage/get-signed-asset-url";
+import { getAppUrl } from "@/utils/url/get-app-url";
 import { putObject } from "@better-upload/server/helpers";
 import { prisma } from "@workspace/db";
 import crypto from "crypto";
@@ -47,6 +48,12 @@ const CreateFeedbackSchema = z.object({
 });
 
 const ALLOWED_SCREENSHOT_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
+function getReviewImagePageUrl(imageId: string, projectId: string) {
+  // The request origin can be the container address behind a reverse proxy.
+  const appUrl = getAppUrl().replace(/\/$/, "");
+  return `${appUrl}/review/images/${imageId}?project=${encodeURIComponent(projectId)}`;
+}
 
 // POST /api/v1/feedback — submit new feedback (multipart)
 export async function POST(req: NextRequest) {
@@ -202,7 +209,7 @@ export async function POST(req: NextRequest) {
       reviewerId: reviewer.id,
       comment: data.comment,
       pageUrl: reviewImage
-        ? `${req.nextUrl.origin}/review/images/${reviewImage.publicId}?project=${encodeURIComponent(project.publicId)}`
+        ? getReviewImagePageUrl(reviewImage.publicId, project.publicId)
         : data.pageUrl,
       reviewImageId: reviewImage?.id,
       clickX: data.clickX,
@@ -294,7 +301,9 @@ export async function GET(req: NextRequest) {
       id: f.id,
       status: f.status,
       comment: f.comment,
-      pageUrl: f.pageUrl,
+      pageUrl: reviewImage
+        ? getReviewImagePageUrl(reviewImage.publicId, project.publicId)
+        : f.pageUrl,
       clickX: f.clickX,
       clickY: f.clickY,
       selector: f.selector,

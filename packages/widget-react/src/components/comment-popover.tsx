@@ -91,6 +91,42 @@ export function CommentPopover() {
     [],
   );
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const root = document.documentElement;
+    const previousRootOverflow = root.style.overflow;
+    const previousScrollbarGutter = root.style.scrollbarGutter;
+    const previousBodyOverflow = document.body.style.overflow;
+    const preventPageScroll = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest("[data-ff-widget]")) {
+        return;
+      }
+      event.preventDefault();
+    };
+
+    root.style.scrollbarGutter = "stable";
+    root.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.addEventListener("wheel", preventPageScroll, {
+      capture: true,
+      passive: false,
+    });
+    document.addEventListener("touchmove", preventPageScroll, {
+      capture: true,
+      passive: false,
+    });
+
+    return () => {
+      root.style.overflow = previousRootOverflow;
+      root.style.scrollbarGutter = previousScrollbarGutter;
+      document.body.style.overflow = previousBodyOverflow;
+      document.removeEventListener("wheel", preventPageScroll, true);
+      document.removeEventListener("touchmove", preventPageScroll, true);
+    };
+  }, [isOpen]);
+
   function resetState() {
     setComment("");
     setError(null);
