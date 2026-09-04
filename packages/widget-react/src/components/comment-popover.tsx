@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   useFloating,
   autoUpdate,
@@ -6,8 +6,13 @@ import {
   flip,
   shift,
 } from "@floating-ui/react";
+import type { VirtualElement } from "@floating-ui/react";
 import { domToBlob } from "modern-screenshot";
-import { generateSelectors, captureElementContext, getBrowserInfo } from "@fasterfixes/core";
+import {
+  generateSelectors,
+  captureElementContext,
+  getBrowserInfo,
+} from "@fasterfixes/core";
 import { useFeedbackContext } from "../context.js";
 import {
   popoverStyle,
@@ -36,6 +41,7 @@ export function CommentPopover() {
     setScreenshotBlob,
     refreshFeedback,
     getDiagnosticTrail,
+    annotationTarget,
   } = useFeedbackContext();
 
   const [comment, setComment] = useState("");
@@ -45,7 +51,20 @@ export function CommentPopover() {
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const frozenStyleRef = useRef<React.CSSProperties | null>(null);
 
-  const isOpen = mode === "selected" || mode === "submitting" || mode === "error";
+  const isOpen =
+    mode === "selected" || mode === "submitting" || mode === "error";
+
+  const pointReference = useMemo<VirtualElement | null>(
+    () =>
+      clickCoords
+        ? {
+            getBoundingClientRect: () =>
+              new DOMRect(clickCoords.x, clickCoords.y, 0, 0),
+            contextElement: selectedElement ?? undefined,
+          }
+        : null,
+    [clickCoords, selectedElement],
+  );
 
   const { refs, floatingStyles } = useFloating({
     open: isOpen || fadingOut,
@@ -58,10 +77,19 @@ export function CommentPopover() {
     placement: "bottom",
   });
 
+  useLayoutEffect(() => {
+    refs.setPositionReference(
+      annotationTarget?.mode === "point" ? pointReference : selectedElement,
+    );
+  }, [annotationTarget, pointReference, refs, selectedElement]);
+
   // Clean up timer on unmount
-  useEffect(() => () => {
-    if (fadeTimerRef.current !== null) clearTimeout(fadeTimerRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (fadeTimerRef.current !== null) clearTimeout(fadeTimerRef.current);
+    },
+    [],
+  );
 
   function resetState() {
     setComment("");
@@ -158,9 +186,7 @@ export function CommentPopover() {
       setFadingOut(true);
       fadeTimerRef.current = setTimeout(resetState, FADEOUT_DURATION);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : labels.errorMessage,
-      );
+      setError(err instanceof Error ? err.message : labels.errorMessage);
       setMode("error");
     }
   }
@@ -185,7 +211,8 @@ export function CommentPopover() {
           scale: window.devicePixelRatio || 1,
           features: { restoreScrollPosition: true },
           filter: (el: Node) => {
-            if (el instanceof Element && el.hasAttribute("data-ff-widget")) return false;
+            if (el instanceof Element && el.hasAttribute("data-ff-widget"))
+              return false;
             if (el instanceof HTMLImageElement) return false;
             if (el instanceof HTMLVideoElement) return false;
             if (el instanceof HTMLPictureElement) return false;
@@ -213,85 +240,111 @@ export function CommentPopover() {
   }
 
   return (
-    <div
-      ref={refs.setFloating}
-      className={`ff-popover ${classNames.popover ?? ""}`}
-      style={{
-        ...popoverStyle,
-        ...(fadingOut && frozenStyleRef.current
-          ? frozenStyleRef.current
-          : floatingStyles),
-        ...(fadingOut
-          ? { animation: `ff-popover-fadeout ${FADEOUT_DURATION}ms ease-in forwards` }
-          : undefined),
-      }}
-      data-ff-widget
-      onKeyDown={handleKeyDown}
-    >
-      {mode === "error" && !fadingOut ? (
-        <div className={`ff-error ${classNames.errorState ?? ""}`}>
-          <p style={{ margin: "0 0 8px", color: "#dc2626", fontSize: 13 }}>
-            {error ?? labels.errorMessage}
-          </p>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              style={primaryButtonStyle()}
-              onClick={handleRetry}
-            >
-              {labels.retryButton}
-            </button>
-            <button
-              type="button"
-              style={secondaryButtonStyle}
-              onClick={handleCancel}
-            >
-              {labels.cancelButton}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          <textarea
-            ref={textareaRef}
-            className={`ff-textarea ${classNames.textarea ?? ""}`}
-            style={textareaStyle}
-            placeholder={labels.textareaPlaceholder}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            disabled={mode === "submitting" || fadingOut}
-            autoFocus
-          />
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 8,
-              marginTop: 8,
-            }}
-          >
-            <button
-              type="button"
-              style={secondaryButtonStyle}
-              onClick={handleCancel}
-              disabled={mode === "submitting" || fadingOut}
-            >
-              {labels.cancelButton}
-            </button>
-            <button
-              type="button"
-              style={{
-                ...primaryButtonStyle(),
-                opacity: mode === "submitting" || !comment.trim() || fadingOut ? 0.6 : 1,
-              }}
-              onClick={handleSubmit}
-              disabled={mode === "submitting" || !comment.trim() || fadingOut}
-            >
-              {mode === "submitting" ? "..." : labels.submitButton}
-            </button>
-          </div>
-        </>
+    <>
+      {annotationTarget?.mode === "point" && clickCoords && !fadingOut && (
+        <span
+          aria-hidden="true"
+          data-ff-widget
+          style={{
+            position: "fixed",
+            top: clickCoords.y - 12,
+            left: clickCoords.x - 12,
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            border: "2px solid #27272a",
+            backgroundColor: "var(--ff-accent)",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+            zIndex: 2147483646,
+            pointerEvents: "none",
+          }}
+        />
       )}
-    </div>
+      <div
+        ref={refs.setFloating}
+        className={`ff-popover ${classNames.popover ?? ""}`}
+        style={{
+          ...popoverStyle,
+          ...(fadingOut && frozenStyleRef.current
+            ? frozenStyleRef.current
+            : floatingStyles),
+          ...(fadingOut
+            ? {
+                animation: `ff-popover-fadeout ${FADEOUT_DURATION}ms ease-in forwards`,
+              }
+            : undefined),
+        }}
+        data-ff-widget
+        onKeyDown={handleKeyDown}
+      >
+        {mode === "error" && !fadingOut ? (
+          <div className={`ff-error ${classNames.errorState ?? ""}`}>
+            <p style={{ margin: "0 0 8px", color: "#dc2626", fontSize: 13 }}>
+              {error ?? labels.errorMessage}
+            </p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                style={primaryButtonStyle()}
+                onClick={handleRetry}
+              >
+                {labels.retryButton}
+              </button>
+              <button
+                type="button"
+                style={secondaryButtonStyle}
+                onClick={handleCancel}
+              >
+                {labels.cancelButton}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <textarea
+              ref={textareaRef}
+              className={`ff-textarea ${classNames.textarea ?? ""}`}
+              style={textareaStyle}
+              placeholder={labels.textareaPlaceholder}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              disabled={mode === "submitting" || fadingOut}
+              autoFocus
+            />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+                marginTop: 8,
+              }}
+            >
+              <button
+                type="button"
+                style={secondaryButtonStyle}
+                onClick={handleCancel}
+                disabled={mode === "submitting" || fadingOut}
+              >
+                {labels.cancelButton}
+              </button>
+              <button
+                type="button"
+                style={{
+                  ...primaryButtonStyle(),
+                  opacity:
+                    mode === "submitting" || !comment.trim() || fadingOut
+                      ? 0.6
+                      : 1,
+                }}
+                onClick={handleSubmit}
+                disabled={mode === "submitting" || !comment.trim() || fadingOut}
+              >
+                {mode === "submitting" ? "..." : labels.submitButton}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </>
   );
 }

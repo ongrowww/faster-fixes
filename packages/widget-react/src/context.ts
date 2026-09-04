@@ -16,6 +16,12 @@ export type WidgetMode =
   | "success"
   | "error";
 
+export type AnnotationTarget = {
+  label: string;
+  mode: "point";
+  selector: string;
+};
+
 export type ClassNames = {
   button?: string;
   popover?: string;
@@ -54,6 +60,7 @@ export type FeedbackContextValue = {
   screenshotBlob: Blob | null;
   setScreenshotBlob: (blob: Blob | null) => void;
   screenshotCaptureRef: React.RefObject<Promise<Blob | null> | null>;
+  annotationTarget?: AnnotationTarget;
 
   // Active pin (for viewing/editing existing feedback)
   activeFeedback: FeedbackItem | null;

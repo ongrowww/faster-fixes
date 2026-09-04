@@ -12,34 +12,15 @@ export function AnnotationOverlay() {
     setClickCoords,
     setScreenshotBlob,
     screenshotCaptureRef,
+    annotationTarget,
   } = useFeedbackContext();
 
   const [highlightRect, setHighlightRect] = useState<DOMRect | null>(null);
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      // Ignore widget elements
-      const target = e.target as Element;
-      if (target.closest("[data-ff-widget]")) {
-        setHighlightRect(null);
-        return;
-      }
-      setHighlightRect(target.getBoundingClientRect());
-    },
-    [],
-  );
-
-  const handleClick = useCallback(
-    (e: MouseEvent) => {
-      const target = e.target as Element;
-      if (target.closest("[data-ff-widget]")) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-
+  const selectTarget = useCallback(
+    (target: Element, point: { x: number; y: number }) => {
       setSelectedElement(target);
-      setClickCoords({ x: e.clientX, y: e.clientY });
+      setClickCoords(point);
 
       // Capture screenshot asynchronously, store promise for submit to await
       const capturePromise = domToBlob(document.body, {
@@ -67,25 +48,90 @@ export function AnnotationOverlay() {
 
       setMode("selected");
     },
-    [setMode, setSelectedElement, setClickCoords, setScreenshotBlob, screenshotCaptureRef],
+    [
+      screenshotCaptureRef,
+      setClickCoords,
+      setMode,
+      setScreenshotBlob,
+      setSelectedElement,
+    ],
+  );
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      // Ignore widget elements
+      const target = e.target as Element;
+      if (target.closest("[data-ff-widget]")) {
+        setHighlightRect(null);
+        return;
+      }
+      if (annotationTarget?.mode === "point") {
+        setHighlightRect(null);
+        return;
+      }
+      setHighlightRect(target.getBoundingClientRect());
+    },
+    [annotationTarget],
+  );
+
+  const handleClick = useCallback(
+    (e: MouseEvent) => {
+      const eventTarget = e.target as Element;
+      if (eventTarget.closest("[data-ff-widget]")) return;
+
+      const target = annotationTarget
+        ? eventTarget.closest(annotationTarget.selector)
+        : eventTarget;
+      if (!target) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      selectTarget(target, { x: e.clientX, y: e.clientY });
+    },
+    [annotationTarget, selectTarget],
   );
 
   // Suppress pointer-down/mousedown so dialogs/drawers don't close
-  const suppressEvent = useCallback((e: Event) => {
-    const target = e.target as Element;
-    if (target.closest("[data-ff-widget]")) return;
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-  }, []);
+  const suppressEvent = useCallback(
+    (e: Event) => {
+      const target = e.target as Element;
+      if (target.closest("[data-ff-widget]")) return;
+      if (annotationTarget && !target.closest(annotationTarget.selector))
+        return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    },
+    [annotationTarget],
+  );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMode("idle");
+        return;
       }
+
+      if (
+        annotationTarget?.mode !== "point" ||
+        (e.key !== "Enter" && e.key !== " ")
+      )
+        return;
+
+      const activeElement = document.activeElement;
+      const target = activeElement?.closest(annotationTarget.selector);
+      if (!target) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      const rect = target.getBoundingClientRect();
+      selectTarget(target, {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      });
     },
-    [setMode],
+    [annotationTarget, selectTarget, setMode],
   );
 
   useEffect(() => {
@@ -97,8 +143,25 @@ export function AnnotationOverlay() {
     document.addEventListener("pointerdown", suppressEvent, true);
     document.addEventListener("keydown", handleKeyDown, true);
 
-    // Set crosshair cursor
-    document.body.style.cursor = "crosshair";
+    const cursorTargets = annotationTarget
+      ? Array.from(
+          document.querySelectorAll<HTMLElement>(annotationTarget.selector),
+        )
+      : [document.body];
+    const previousAttributes = cursorTargets.map((target) => ({
+      ariaLabel: target.getAttribute("aria-label"),
+      cursor: target.style.cursor,
+      role: target.getAttribute("role"),
+      tabIndex: target.getAttribute("tabindex"),
+    }));
+    cursorTargets.forEach((target) => {
+      target.style.cursor = "crosshair";
+      if (annotationTarget?.mode === "point") {
+        target.setAttribute("aria-label", annotationTarget.label);
+        target.setAttribute("role", "button");
+        target.setAttribute("tabindex", "0");
+      }
+    });
 
     return () => {
       document.removeEventListener("mousemove", handleMouseMove, true);
@@ -106,9 +169,22 @@ export function AnnotationOverlay() {
       document.removeEventListener("mousedown", suppressEvent, true);
       document.removeEventListener("pointerdown", suppressEvent, true);
       document.removeEventListener("keydown", handleKeyDown, true);
-      document.body.style.cursor = "";
+      cursorTargets.forEach((target, index) => {
+        const previous = previousAttributes[index];
+        target.style.cursor = previous?.cursor ?? "";
+        restoreAttribute(target, "aria-label", previous?.ariaLabel);
+        restoreAttribute(target, "role", previous?.role);
+        restoreAttribute(target, "tabindex", previous?.tabIndex);
+      });
     };
-  }, [mode, handleMouseMove, handleClick, suppressEvent, handleKeyDown]);
+  }, [
+    annotationTarget,
+    mode,
+    handleMouseMove,
+    handleClick,
+    suppressEvent,
+    handleKeyDown,
+  ]);
 
   if (mode !== "annotating" || !highlightRect) return null;
 
@@ -126,4 +202,16 @@ export function AnnotationOverlay() {
       }}
     />
   );
+}
+
+function restoreAttribute(
+  element: Element,
+  name: string,
+  value: string | null | undefined,
+) {
+  if (value == null) {
+    element.removeAttribute(name);
+    return;
+  }
+  element.setAttribute(name, value);
 }

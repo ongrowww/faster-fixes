@@ -70,6 +70,11 @@ export function ReviewImageCanvas({ imageId }: { imageId: string }) {
       reviewerToken={token}
       config={{ enabled: true, branding: true }}
       captureDiagnostics={false}
+      annotationTarget={{
+        label: `Place a feedback marker on ${image.filename}`,
+        mode: "point",
+        selector: `[data-review-image="${image.id}"]`,
+      }}
     >
       <main className="bg-muted min-h-screen px-4 py-5 sm:px-8">
         <div className="mx-auto max-w-[1600px]">

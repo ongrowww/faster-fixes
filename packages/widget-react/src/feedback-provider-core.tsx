@@ -17,7 +17,11 @@ import type {
   WidgetConfig,
   WidgetPosition,
 } from "@fasterfixes/core";
-import { FeedbackContext, type ClassNames } from "./context.js";
+import {
+  FeedbackContext,
+  type AnnotationTarget,
+  type ClassNames,
+} from "./context.js";
 import type { WidgetMode } from "./context.js";
 import { POSITION_STYLES, Z_WIDGET } from "./styles.js";
 import { FloatingButton } from "./components/floating-button.js";
@@ -39,6 +43,7 @@ export type FeedbackProviderCoreProps = {
   captureDiagnostics?: boolean;
   apiOrigin?: string;
   reviewImagesUrl?: string;
+  annotationTarget?: AnnotationTarget;
   children: React.ReactNode;
 };
 
@@ -63,6 +68,7 @@ export function FeedbackProviderCore({
   captureDiagnostics = true,
   apiOrigin = DEFAULT_API_ORIGIN,
   reviewImagesUrl,
+  annotationTarget,
   children,
 }: FeedbackProviderCoreProps) {
   const [mode, setMode] = useState<WidgetMode>("idle");
@@ -348,6 +354,7 @@ export function FeedbackProviderCore({
     highlightSelector,
     setHighlightSelector,
     screenshotCaptureRef,
+    annotationTarget,
     classNames: mergedClassNames,
     labels: mergedLabels,
     position: effectivePosition,
@@ -374,7 +381,7 @@ export function FeedbackProviderCore({
             onMouseDown={(e) => e.stopPropagation()}
           >
             <AnnotationOverlay />
-            <ElementHighlight />
+            {annotationTarget?.mode !== "point" && <ElementHighlight />}
 
             {showPins &&
               visiblePins.map((item) => (
