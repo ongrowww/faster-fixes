@@ -17,6 +17,7 @@ export type WidgetMode =
   | "error";
 
 export type AnnotationTarget = {
+  activateOnMount?: boolean;
   label: string;
   mode: "point";
   selector: string;

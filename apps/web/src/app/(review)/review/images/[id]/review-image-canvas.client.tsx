@@ -71,6 +71,7 @@ export function ReviewImageCanvas({ imageId }: { imageId: string }) {
       config={{ enabled: true, branding: true }}
       captureDiagnostics={false}
       annotationTarget={{
+        activateOnMount: true,
         label: `Place a feedback marker on ${image.filename}`,
         mode: "point",
         selector: `[data-review-image="${image.id}"]`,

@@ -71,7 +71,9 @@ export function FeedbackProviderCore({
   annotationTarget,
   children,
 }: FeedbackProviderCoreProps) {
-  const [mode, setMode] = useState<WidgetMode>("idle");
+  const [mode, setMode] = useState<WidgetMode>(() =>
+    annotationTarget?.activateOnMount ? "annotating" : "idle",
+  );
   const [isVisible, setIsVisible] = useState(true);
   const [feedbackItems, setFeedbackItems] = useState<FeedbackItem[]>([]);
   const [currentUrl, setCurrentUrl] = useState(() =>

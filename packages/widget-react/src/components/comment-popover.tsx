@@ -99,7 +99,7 @@ export function CommentPopover() {
     setSelectedElement(null);
     setClickCoords(null);
     setScreenshotBlob(null);
-    setMode("idle");
+    setMode(annotationTarget?.activateOnMount ? "annotating" : "idle");
   }
 
   function handleCancel() {
