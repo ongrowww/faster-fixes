@@ -1,6 +1,8 @@
 import type { VirtualElement } from "@floating-ui/dom";
 import type { Labels } from "@fasterfixes/core";
 
+import { lockPageScroll } from "./scroll-lock.js";
+
 import {
   anchorBelow,
   createActionButton,
@@ -160,41 +162,5 @@ export function createCommentPopover(
       textarea.focus({ preventScroll: true });
     },
     close: teardown,
-  };
-}
-
-function lockPageScroll(document: Document) {
-  const root = document.documentElement;
-  const overflow = root.style.overflow;
-  const gutter = root.style.scrollbarGutter;
-  const bodyOverflow = document.body.style.overflow;
-  const listening = new AbortController();
-  const preventScroll = (event: Event) => {
-    if (
-      event.target instanceof Element &&
-      event.target.closest("[data-ff-widget]")
-    ) {
-      return;
-    }
-    event.preventDefault();
-  };
-  root.style.scrollbarGutter = "stable";
-  root.style.overflow = "hidden";
-  document.body.style.overflow = "hidden";
-  document.addEventListener("wheel", preventScroll, {
-    capture: true,
-    passive: false,
-    signal: listening.signal,
-  });
-  document.addEventListener("touchmove", preventScroll, {
-    capture: true,
-    passive: false,
-    signal: listening.signal,
-  });
-  return () => {
-    listening.abort();
-    root.style.overflow = overflow;
-    root.style.scrollbarGutter = gutter;
-    document.body.style.overflow = bodyOverflow;
   };
 }
