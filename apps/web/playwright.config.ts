@@ -35,6 +35,11 @@ export default defineConfig({
         NEXT_PUBLIC_FF_API_ORIGIN: WIDGET_API_ORIGIN,
         // The homepage demo is a cloud-only route; self-hosted redirects it to /login.
         NEXT_PUBLIC_IS_CLOUD: "true",
+        // Navigation scenarios reach /signup; the production registration gate stays closed by default.
+        REGISTRATION_ENABLED: "true",
+        // Never inherit a developer or CI database connection into this browser-only fixture.
+        DATABASE_ADAPTER: "postgres",
+        DATABASE_URL: "postgresql://e2e:e2e@database.e2e.invalid:5432/e2e",
         // Placeholders for the modules the auth pages evaluate at import. No database
         // is reached: the specs answer the session request in the browser.
         RESEND_API_KEY: "re_e2e",
