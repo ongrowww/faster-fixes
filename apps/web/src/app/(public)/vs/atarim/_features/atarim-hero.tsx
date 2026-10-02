@@ -11,17 +11,19 @@ export function AtarimHero() {
     <HeroDotBackground>
       <section className="w-full py-20 md:py-24">
         <div className="container mx-auto max-w-3xl px-4 text-center">
-          <p className="text-muted-foreground mb-4 text-sm font-semibold tracking-wider uppercase">
+          <p className="mb-4 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
             Atarim alternative
           </p>
           <h1 className="text-4xl leading-tight font-normal md:text-5xl lg:text-6xl">
             The open-source Atarim alternative for dev teams
           </h1>
-          <p className="text-muted-foreground mx-auto mt-6 max-w-2xl text-lg md:text-xl">
-            FasterFixes is a self-hostable, React-native feedback tool built
-            for development workflows — not agency client review. Open-source
-            (AGPL-3.0 + MIT), flat pricing, and an MCP server that lets Claude
-            Code, Cursor, and Codex read feedback directly from your terminal.
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
+            FasterFixes is an open-source, self-hostable feedback tool for
+            development teams: AGPL-3.0 licensed, flat-rate priced, and built
+            around structured bug reports rather than an agency review workflow.
+            Every report carries a screenshot, DOM selector, React component
+            tree, console logs, and network requests, and an MCP server lets
+            Claude Code, Cursor, and Codex resolve it from the terminal.
           </p>
 
           <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">

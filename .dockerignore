@@ -7,9 +7,10 @@
 **/.turbo
 **/dist
 **/node_modules
+**/generated/prisma
 node_modules
-.env
-.env.*
-!.env.example
+**/.env
+**/.env.*
+!**/.env.example
 coverage
 advisor-plans

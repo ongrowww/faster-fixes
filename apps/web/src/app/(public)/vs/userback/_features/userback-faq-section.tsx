@@ -1,4 +1,4 @@
-import type { FaqItem } from "@/app/_features/seo/faq-schema";
+import type { FaqItem } from "@/app/_components/seo/faq-schema";
 import {
   Accordion,
   AccordionContent,
@@ -31,11 +31,11 @@ export const userbackFaqs: RichFaqItem[] = [
   {
     question: "Is FasterFixes free?",
     answer:
-      "Yes. The free plan includes 1 project, 50 feedback items, and 1 member — no credit card required. The self-hosted version is also free under AGPL-3.0; you only pay for your own hosting infrastructure (typically $5-20/month on Railway or Vercel).",
+      "Yes. The free plan includes 1 project, 50 feedback items, and 1 member, no credit card required. The self-hosted version is also free under AGPL-3.0; you only pay for your own hosting infrastructure (typically $5-20/month on Railway or Vercel).",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
-        Yes. The free plan includes 1 project, 50 feedback items, and 1 member
-        — no credit card required. The self-hosted version is also free under
+      <p className="text-lg text-muted-foreground md:text-xl">
+        Yes. The free plan includes 1 project, 50 feedback items, and 1 member,
+        no credit card required. The self-hosted version is also free under
         AGPL-3.0; you only pay for your own hosting infrastructure (typically
         $5-20/month on Railway or Vercel). See the{" "}
         <DocLink href={"/docs/self-hosting" as Route}>
@@ -50,7 +50,7 @@ export const userbackFaqs: RichFaqItem[] = [
     answer:
       "Yes. The stack is Next.js, Postgres, Inngest, and R2 or S3-compatible storage. Userback has no self-hosted option. Deploy on Vercel, Railway, or any Node-compatible host. The dashboard is AGPL-3.0; the widget packages are MIT.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
+      <p className="text-lg text-muted-foreground md:text-xl">
         Yes. The stack is Next.js, Postgres, Inngest, and R2 or S3-compatible
         storage. Userback has no self-hosted option. Deploy on Vercel, Railway,
         or any Node-compatible host. The dashboard is AGPL-3.0; the widget
@@ -65,14 +65,15 @@ export const userbackFaqs: RichFaqItem[] = [
   {
     question: "How is FasterFixes different from Userback?",
     answer:
-      "FasterFixes is open-source and self-hostable; Userback is closed-source and cloud-only. FasterFixes captures React component tree, DOM selector, URL, browser, and viewport on every report. Userback is a broader platform with annotated video, session replay, NPS surveys, and a feature portal — features FasterFixes does not currently offer. FasterFixes is built specifically for developer teams who need structured bug reports, not a full product analytics suite.",
+      "FasterFixes is open-source and self-hostable; Userback is closed-source and cloud-only. FasterFixes captures DOM selector, URL, browser, and viewport on every report, plus the React component tree on React sites. Userback is a broader platform with annotated video, session replay, NPS surveys, and a feature portal. FasterFixes does not currently offer those features. FasterFixes is built specifically for developer teams who need structured bug reports, not a full product analytics suite.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
+      <p className="text-lg text-muted-foreground md:text-xl">
         FasterFixes is open-source and self-hostable; Userback is closed-source
-        and cloud-only. FasterFixes captures React component tree, DOM
-        selector, URL, browser, and viewport on every report. Userback is a
-        broader platform with annotated video, session replay, NPS surveys,
-        and a feature portal — features FasterFixes does not currently offer.
+        and cloud-only. FasterFixes captures DOM selector, URL, browser, and
+        viewport on every report, plus the React component tree on React sites.
+        Userback is a broader platform with annotated video, session replay, NPS
+        surveys, and a feature portal. FasterFixes does not currently offer
+        those features.
       </p>
     ),
   },
@@ -89,12 +90,12 @@ export const userbackFaqs: RichFaqItem[] = [
   {
     question: "What does the MCP server do?",
     answer:
-      "@fasterfixes/mcp connects Claude Code, Cursor, and Codex to your FasterFixes workspace. Feedback items are accessible directly in the terminal — no browser tab switching, no copy-pasting issue descriptions into a chat window. Userback also offers an MCP server, but FasterFixes is open-source and self-hostable end to end.",
+      "@fasterfixes/mcp connects Claude Code, Cursor, and Codex to your FasterFixes workspace. Feedback items are accessible directly in the terminal, no browser tab switching, no copy-pasting issue descriptions into a chat window. Userback also offers an MCP server, but FasterFixes is open-source and self-hostable end to end.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
+      <p className="text-lg text-muted-foreground md:text-xl">
         @fasterfixes/mcp connects Claude Code, Cursor, and Codex to your
         FasterFixes workspace. Feedback items are accessible directly in the
-        terminal — no browser tab switching, no copy-pasting issue descriptions
+        terminal, no browser tab switching, no copy-pasting issue descriptions
         into a chat window. Userback also offers an MCP server, but FasterFixes
         is open-source and self-hostable end to end. See{" "}
         <DocLink href={"/docs/mcp/setup" as Route}>MCP setup</DocLink> and the{" "}
@@ -103,19 +104,25 @@ export const userbackFaqs: RichFaqItem[] = [
     ),
   },
   {
-    question: "How do I install FasterFixes in Next.js?",
+    question: "How do I install FasterFixes on my site?",
     answer:
-      "Run npm install @fasterfixes/react, mount the FeedbackWidget component in your layout, and pass the project key. The widget hooks into your React tree and captures the component path on every report. Works with the Next.js App Router and any React-based framework.",
+      "Add one script tag with your Project ID to any site: WordPress, Webflow, static HTML, or an app built with Vue, Angular, Svelte, or any other framework. In a React or Next.js app, you can instead run npm install @fasterfixes/react and wrap the app in FeedbackProvider with your Project ID. Both embeds share the same widget, options, and captured context.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
-        Run npm install @fasterfixes/react, mount the FeedbackWidget component
-        in your layout, and pass the project key. The widget hooks into your
-        React tree and captures the component path on every report. Works with
-        the Next.js App Router and any React-based framework. See the{" "}
-        <DocLink href={"/docs/widget/react" as Route}>
-          React widget docs
-        </DocLink>{" "}
-        and the{" "}
+      <p className="text-lg text-muted-foreground md:text-xl">
+        Add one script tag with your Project ID to any site: WordPress, Webflow,
+        static HTML, or an app built with Vue, Angular, Svelte, or any other
+        framework. In a React or Next.js app, you can instead run npm install
+        @fasterfixes/react and wrap the app in FeedbackProvider with your
+        Project ID. Both embeds share the same widget, options, and captured
+        context. See the{" "}
+        <DocLink href={"/docs/widget/install/script-embed" as Route}>
+          script embed docs
+        </DocLink>
+        , the{" "}
+        <DocLink href={"/docs/widget/install/react" as Route}>
+          React embed docs
+        </DocLink>
+        , and the{" "}
         <DocLink href={"/docs/getting-started/quickstart" as Route}>
           quickstart
         </DocLink>
@@ -126,24 +133,25 @@ export const userbackFaqs: RichFaqItem[] = [
   {
     question: "Does FasterFixes work on non-React stacks?",
     answer:
-      "Partially. FasterFixes has a basic HTML embed for non-React pages. However, the full context capture — React component tree, DOM selector — is only available with the React widget. Userback's JS snippet and browser extension work on any stack. If your project is not React-based, Userback offers broader compatibility today.",
+      "Yes. The script embed installs the widget with one script tag on any site, with the same screenshot, DOM selector, URL, browser, viewport, console, and network capture as the React embed. The React component path is added when the site runs React. Unlike Userback, FasterFixes does not offer a browser extension.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
-        Partially. FasterFixes has a basic HTML embed for non-React pages.
-        However, the full context capture — React component tree, DOM selector
-        — is only available with the React widget. Userback&apos;s JS snippet
-        and browser extension work on any stack. See the{" "}
-        <DocLink href={"/docs/widget/other-frameworks" as Route}>
-          other frameworks page
-        </DocLink>{" "}
-        for the latest status.
+      <p className="text-lg text-muted-foreground md:text-xl">
+        Yes. The script embed installs the widget with one script tag on any
+        site, with the same screenshot, DOM selector, URL, browser, viewport,
+        console, and network capture as the React embed. The React component
+        path is added when the site runs React. Unlike Userback, FasterFixes
+        does not offer a browser extension. See the{" "}
+        <DocLink href={"/docs/widget/install/script-embed" as Route}>
+          script embed docs
+        </DocLink>
+        .
       </p>
     ),
   },
   {
     question: "How do I migrate from Userback?",
     answer:
-      "Export your feedback as CSV from Userback (Settings > Export), then deploy or sign up for FasterFixes, install the widget, and connect GitHub, Linear, and Jira (any combination) on a paid plan. Note that video recordings, session replays, and survey responses do not migrate — FasterFixes does not support those features. The full 4-step guide is in the migration section above.",
+      "Export your feedback as CSV from Userback (Settings > Export), then deploy or sign up for FasterFixes, install the widget, and connect GitHub, Linear, and Jira (any combination) on a paid plan. Note that video recordings, session replays, and survey responses do not migrate. FasterFixes does not support those features. The full 4-step guide is in the migration section above.",
   },
   {
     question: "Is FasterFixes open source?",
@@ -171,7 +179,7 @@ export function UserbackFaqSection() {
                 </AccordionTrigger>
                 <AccordionContent>
                   {faq.content ?? (
-                    <p className="text-muted-foreground text-lg md:text-xl">
+                    <p className="text-lg text-muted-foreground md:text-xl">
                       {faq.answer}
                     </p>
                   )}

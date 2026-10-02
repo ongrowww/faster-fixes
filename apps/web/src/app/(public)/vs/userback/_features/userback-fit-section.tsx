@@ -5,7 +5,7 @@ const fitPoints = [
   "You want feedback piped directly into Claude Code, Cursor, or Codex via MCP.",
   "You need to self-host for data sovereignty or compliance.",
   "You don't need video recording, session replay, or NPS surveys.",
-  "You're already on Next.js or React and want a native widget integration.",
+  "You want one widget for every client site: a script tag on any stack, or a React package for React apps.",
 ];
 
 export function UserbackFitSection() {
@@ -13,7 +13,7 @@ export function UserbackFitSection() {
     <section className="w-full py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-muted-foreground mb-3 text-sm font-semibold tracking-wider uppercase">
+          <p className="mb-3 text-sm font-semibold tracking-wider text-muted-foreground uppercase">
             Right fit
           </p>
           <h2 className="text-3xl font-bold md:text-4xl">
@@ -25,10 +25,10 @@ export function UserbackFitSection() {
           {fitPoints.map((point) => (
             <li
               key={point}
-              className="bg-muted/30 flex items-start gap-3 rounded-xl border p-5"
+              className="flex items-start gap-3 rounded-xl border bg-muted/30 p-5"
             >
-              <CheckIcon className="text-success mt-1 size-5 shrink-0" />
-              <span className="text-foreground leading-relaxed">{point}</span>
+              <CheckIcon className="mt-1 size-5 shrink-0 text-success" />
+              <span className="leading-relaxed text-foreground">{point}</span>
             </li>
           ))}
         </ul>

@@ -1,11 +1,75 @@
 # Changelog
 
+## 1.0.1
+
+### Patch Changes
+
+- Updated dependencies [[`195b1aa`](https://github.com/manucoffin/faster-fixes/commit/195b1aaa084b64b741b092805e7d6f2450847e25), [`3e86fca`](https://github.com/manucoffin/faster-fixes/commit/3e86fcaea1d1e984aa0276182c190ee479ff9c65)]:
+  - @fasterfixes/widget@1.2.0
+
+## 1.0.0
+
+### Major Changes
+
+- [#199](https://github.com/manucoffin/faster-fixes/pull/199) [`0651dae`](https://github.com/manucoffin/faster-fixes/commit/0651daee8a972235e424ecda5e4d0bcfd12db8fd) Thanks [@manucoffin](https://github.com/manucoffin)! - `@fasterfixes/react` is now a thin wrapper around `@fasterfixes/widget`. `FeedbackProvider` mounts the same Widget as the script embed, and both embeds share one contract: the same options, the same `labels`, the same CSS custom properties and the same instance methods. `FeedbackProvider` and `useFeedback` keep their names, props and return shape, so for most installs the upgrade is a version bump. Read the list below before upgrading from 0.0.x.
+
+  **Dependencies**
+  - The package depends on `@fasterfixes/widget` and no longer on `@fasterfixes/core`, `@floating-ui/react` or `modern-screenshot`. Peer dependencies are unchanged: `react` and `react-dom` 18 or later.
+
+  **Rendering**
+  - The Widget renders inside an open Shadow DOM attached to a `[data-ff-widget]` host element. Your site's styles, resets and `!important` rules no longer reach it, and styles that targeted the Widget's elements from your stylesheet no longer apply.
+  - The Widget mounts in an effect, on the client, after hydration. On the server and on the first client render, `FeedbackProvider` renders only its `children`.
+  - When `FeedbackProvider` unmounts, the Widget is destroyed: it is removed from the page, the Diagnostic Trail stops, and the patched `console`, `fetch` and `XMLHttpRequest` are restored.
+  - Changing `projectId`, `apiOrigin`, `color`, `position`, `labels` or `captureDiagnostics` replaces the Widget with a new one. An inline `labels` object is compared by its values, so re-rendering with the same labels keeps the Widget in place.
+
+  **Deprecated props**
+  - `classNames` is ignored. It stays in the prop types so existing code compiles, and development builds log a console warning. Theme the Widget with the CSS custom properties `--ff-accent`, `--ff-background`, `--ff-foreground`, `--ff-radius`, `--ff-font-family` and `--ff-z-index` on `[data-ff-widget]`, and with the `::part()` selectors `button`, `overlay`, `popover`, `textarea`, `pin`, `list` and `list-item`. `color` still sets `--ff-accent`.
+  - `apiKey` still works: when `projectId` is absent, its value is used as the Project ID. Development builds now log a console warning. Rename it to `projectId`.
+  - Both props will be removed in version 2.
+
+  **Removed**
+  - The `@fasterfixes/react/internal` entry and `FeedbackProviderCore`. To run the Widget with a custom `FeedbackClient`, use `createWidget` from `@fasterfixes/widget/internal`.
+
+  **Labels**
+  - No key was removed or renamed. `Partial<Labels>` now accepts any string for each key; in 0.0.x its types only accepted the default English strings.
+  - Strings that were hard-coded in the React UI now come from `labels`: the floating button (`startFeedback`), the exit control (`exitFeedbackMode`), the Feedback list control (`showFeedbackList`, `hideFeedbackList`) and the pins control (`showMarkers`, `hideMarkers`). The pin accessible name (`pinAriaLabel`, a function that receives an excerpt of the comment) and the branding link (`brandingLink`) are also new keys.
+  - `closeButton` is now read, as the accessible name of the pin popover close control. `successMessage` is still accepted and still not displayed.
+
+  **Hook**
+  - `useFeedback` subscribes to the Widget instance: components re-render when `isVisible`, `feedbackItems` or `showPins` change. Before the Widget mounts, it returns `isVisible: false`, `feedbackItems: []` and `showPins: true`, and its methods do nothing.
+
+  See https://faster-fixes.com/docs/widget/react for the updated documentation.
+
+### Patch Changes
+
+- Updated dependencies [[`9d43ac2`](https://github.com/manucoffin/faster-fixes/commit/9d43ac25e4435ea0b86d245fc9ecd9965c1f3b02)]:
+  - @fasterfixes/widget@1.1.0
+
+## 0.0.13
+
+### Patch Changes
+
+- [#197](https://github.com/manucoffin/faster-fixes/pull/197) [`9ec2011`](https://github.com/manucoffin/faster-fixes/commit/9ec2011155c0eb66d95485c5c98b862d2fc0ccdd) Thanks [@manucoffin](https://github.com/manucoffin)! - The comment and pin popovers now stay inside the viewport when the selected element is taller than the screen. When neither side of the element has room, the popover sits against the visible edge of the viewport, over the element, instead of rendering off screen.
+- Updated dependencies [[`571b6f9`](https://github.com/manucoffin/faster-fixes/commit/571b6f9f9a00104ece629d6ce45dfb64846e78d8)]:
+  - @fasterfixes/core@0.1.0
+
+## 0.0.12
+
+### Patch Changes
+
+- [#173](https://github.com/manucoffin/faster-fixes/pull/173) [`69e80e5`](https://github.com/manucoffin/faster-fixes/commit/69e80e563af5685cbcae11b511cbfa0c0a674db6) Thanks [@manucoffin](https://github.com/manucoffin)! - Diagnostic Trail: a console argument that `JSON.stringify` cannot represent is now recorded as `[Unserializable]` instead of `[object Object]`. Internal typing cleanup in both packages, with no public API change.
+
+- [#173](https://github.com/manucoffin/faster-fixes/pull/173) [`68548c8`](https://github.com/manucoffin/faster-fixes/commit/68548c875c5a3ff52753ec70b4ec1668cdccee56) Thanks [@manucoffin](https://github.com/manucoffin)! - Internal cleanup for the React Compiler lint rules: popovers, pins and the feedback list no longer read refs during render or set state synchronously inside effects. No public API change; a few state updates now land one frame earlier.
+
+- [#173](https://github.com/manucoffin/faster-fixes/pull/173) [`e904154`](https://github.com/manucoffin/faster-fixes/commit/e90415436338f37e512a2fc9698197f4d5bbc528) Thanks [@manucoffin](https://github.com/manucoffin)! - Internal typing cleanup: null checks, fallbacks and non-null assertions now match the real types. No public API change. A feedback status the widget does not know still renders with the `new` color, and an invalid `position` still falls back to `bottom-right`.
+- Updated dependencies [[`5ec51c6`](https://github.com/manucoffin/faster-fixes/commit/5ec51c67e79287bc8ee457d8df2c29b25225476d), [`69e80e5`](https://github.com/manucoffin/faster-fixes/commit/69e80e563af5685cbcae11b511cbfa0c0a674db6), [`e904154`](https://github.com/manucoffin/faster-fixes/commit/e90415436338f37e512a2fc9698197f4d5bbc528)]:
+  - @fasterfixes/core@0.0.8
+
 ## 0.0.11
 
-### Added
+### Patch Changes
 
-- A launcher menu that lets Reviewers choose between commenting on the current page and opening the project's image review gallery.
-- Keyboard-accessible launcher behavior with Escape handling and focus return.
+- [`4a3e22a`](https://github.com/manucoffin/faster-fixes/commit/4a3e22a5bc2b6b4d58486b2e0fa9ad3d872079ce) Thanks [@manucoffin](https://github.com/manucoffin)! - Screenshots now capture the viewport as currently scrolled instead of the top of the document, so the image matches what the reviewer was looking at when they pinned the feedback.
 
 ## 0.0.8
 

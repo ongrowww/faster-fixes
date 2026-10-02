@@ -1,4 +1,4 @@
-import type { FaqItem } from "@/app/_features/seo/faq-schema";
+import type { FaqItem } from "@/app/_components/seo/faq-schema";
 import {
   Accordion,
   AccordionContent,
@@ -31,14 +31,14 @@ export const atarimFaqs: RichFaqItem[] = [
   {
     question: "Is FasterFixes free?",
     answer:
-      "Yes. The Free plan includes 1 project, 50 feedback items, and 1 member — no credit card required. Self-hosting is free forever with no item or member limits beyond your own infrastructure. The Pro plan is $20/month flat for up to 5 members, and the Agency plan is $99/month for unlimited members.",
+      "Yes. The Free plan includes 1 project, 50 feedback items, and 1 member, no credit card required. Self-hosting is free forever with no item or member limits beyond your own infrastructure. The Pro plan is $20/month flat for up to 5 members, and the Agency plan is $99/month for unlimited members.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
-        Yes. The Free plan includes 1 project, 50 feedback items, and 1 member
-        — no credit card required. Self-hosting is free forever with no item
-        or member limits beyond your own infrastructure. The Pro plan is
-        $20/month flat for up to 5 members, and the Agency plan is $99/month
-        for unlimited members. See the{" "}
+      <p className="text-lg text-muted-foreground md:text-xl">
+        Yes. The Free plan includes 1 project, 50 feedback items, and 1 member,
+        no credit card required. Self-hosting is free forever with no item or
+        member limits beyond your own infrastructure. The Pro plan is $20/month
+        flat for up to 5 members, and the Agency plan is $99/month for unlimited
+        members. See the{" "}
         <DocLink href={"/docs/self-hosting" as Route}>
           self-hosting guide
         </DocLink>
@@ -51,11 +51,11 @@ export const atarimFaqs: RichFaqItem[] = [
     answer:
       "Yes. The stack is Next.js, Postgres, Inngest, and R2 or S3-compatible storage. Atarim has no self-hosted option. Deploy on Vercel, Railway, or any Node-compatible host. The dashboard is AGPL-3.0; the widget packages are MIT.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
+      <p className="text-lg text-muted-foreground md:text-xl">
         Yes. The stack is Next.js, Postgres, Inngest, and R2 or S3-compatible
-        storage. Atarim has no self-hosted option. Deploy on Vercel, Railway,
-        or any Node-compatible host. The dashboard is AGPL-3.0; the widget
-        packages are MIT. Full instructions in the{" "}
+        storage. Atarim has no self-hosted option. Deploy on Vercel, Railway, or
+        any Node-compatible host. The dashboard is AGPL-3.0; the widget packages
+        are MIT. Full instructions in the{" "}
         <DocLink href={"/docs/self-hosting" as Route}>
           self-hosting guide
         </DocLink>
@@ -66,22 +66,23 @@ export const atarimFaqs: RichFaqItem[] = [
   {
     question: "How is FasterFixes different from Atarim?",
     answer:
-      "FasterFixes is open-source (AGPL-3.0 + MIT) and self-hostable; Atarim is proprietary and cloud-only. FasterFixes charges a flat monthly rate; Atarim charges per seat ($25/seat/month on Pro). FasterFixes ships a React/Next.js npm widget that captures component tree, DOM selector, and full browser context; Atarim uses a JS snippet, Chrome extension, or WordPress plugin with no React SDK and no component tree capture. FasterFixes includes an MCP server for AI coding agents; Atarim has no MCP integration.",
+      "FasterFixes is open-source (AGPL-3.0 + MIT) and self-hostable; Atarim is proprietary and cloud-only. FasterFixes charges a flat monthly rate; Atarim charges per seat ($25/seat/month on Pro). FasterFixes ships a widget that installs with a script tag on any site or as a React package, and captures DOM selector, full browser context, and the React component tree on React sites; Atarim uses a JS snippet, Chrome extension, or WordPress plugin with no React SDK and no component tree capture. FasterFixes includes an MCP server for AI coding agents; Atarim has no MCP integration.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
-        FasterFixes is open-source (AGPL-3.0 + MIT) and self-hostable; Atarim
-        is proprietary and cloud-only. FasterFixes charges a flat monthly
-        rate; Atarim charges per seat ($25/seat/month on Pro). FasterFixes
-        ships a React/Next.js npm widget that captures component tree, DOM
-        selector, and full browser context. FasterFixes also includes an MCP
-        server for AI coding agents; Atarim has no MCP integration.
+      <p className="text-lg text-muted-foreground md:text-xl">
+        FasterFixes is open-source (AGPL-3.0 + MIT) and self-hostable; Atarim is
+        proprietary and cloud-only. FasterFixes charges a flat monthly rate;
+        Atarim charges per seat ($25/seat/month on Pro). FasterFixes ships a
+        widget that installs with a script tag on any site or as a React
+        package, and captures DOM selector, full browser context, and the React
+        component tree on React sites. FasterFixes also includes an MCP server
+        for AI coding agents; Atarim has no MCP integration.
       </p>
     ),
   },
   {
     question: "Does FasterFixes have video recording?",
     answer:
-      "No. FasterFixes does not currently support video recording or session replay. It captures a screenshot, React component tree, DOM selector, URL, browser, and viewport on each feedback item. Atarim does not offer video recording either; if video walkthroughs are a hard requirement, BugHerd or Userback include video features.",
+      "No. FasterFixes does not currently support video recording or session replay. It captures a screenshot, DOM selector, URL, browser, and viewport on each feedback item, plus the React component tree on React sites. Atarim does not offer video recording either; if video walkthroughs are a hard requirement, BugHerd or Userback include video features.",
   },
   {
     question: "Does Atarim support whitelabeling?",
@@ -91,35 +92,39 @@ export const atarimFaqs: RichFaqItem[] = [
   {
     question: "What does the MCP server do?",
     answer:
-      "@fasterfixes/mcp is a Model Context Protocol server that connects Claude Code, Cursor, and Codex to your FasterFixes workspace. Feedback items are accessible directly in the terminal — no browser tab switching, no copy-pasting issue descriptions into a chat window. Atarim does not have an MCP integration: its InnerCircle AI agents run only inside the Atarim dashboard.",
+      "@fasterfixes/mcp is a Model Context Protocol server that connects Claude Code, Cursor, and Codex to your FasterFixes workspace. Feedback items are accessible directly in the terminal, no browser tab switching, no copy-pasting issue descriptions into a chat window. Atarim does not have an MCP integration: its InnerCircle AI agents run only inside the Atarim dashboard.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
-        @fasterfixes/mcp is a Model Context Protocol server that connects
-        Claude Code, Cursor, and Codex to your FasterFixes workspace.
-        Feedback items are accessible directly in the terminal. Atarim does
-        not have an MCP integration: its InnerCircle AI agents run only
-        inside the Atarim dashboard. See{" "}
-        <DocLink href={"/docs/mcp/setup" as Route}>MCP setup</DocLink> and
-        the{" "}
+      <p className="text-lg text-muted-foreground md:text-xl">
+        @fasterfixes/mcp is a Model Context Protocol server that connects Claude
+        Code, Cursor, and Codex to your FasterFixes workspace. Feedback items
+        are accessible directly in the terminal. Atarim does not have an MCP
+        integration: its InnerCircle AI agents run only inside the Atarim
+        dashboard. See{" "}
+        <DocLink href={"/docs/mcp/setup" as Route}>MCP setup</DocLink> and the{" "}
         <DocLink href={"/docs/mcp/tools" as Route}>tool reference</DocLink>.
       </p>
     ),
   },
   {
-    question: "How do I install FasterFixes in Next.js?",
+    question: "How do I install FasterFixes on my site?",
     answer:
-      "Run npm install @fasterfixes/react, mount the FeedbackWidget component in your layout, and pass the project key. The widget hooks into your React tree and captures the component path on every report. Works with the Next.js App Router and any React-based framework.",
+      "Add one script tag with your Project ID to any site: WordPress, Webflow, static HTML, or an app built with Vue, Angular, Svelte, or any other framework. In a React or Next.js app, you can instead run npm install @fasterfixes/react and wrap the app in FeedbackProvider with your Project ID. Both embeds share the same widget, options, and captured context.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
-        Run npm install @fasterfixes/react, mount the FeedbackWidget
-        component in your layout, and pass the project key. The widget hooks
-        into your React tree and captures the component path on every
-        report. Works with the Next.js App Router and any React-based
-        framework. See the{" "}
-        <DocLink href={"/docs/widget/react" as Route}>
-          React widget docs
-        </DocLink>{" "}
-        and the{" "}
+      <p className="text-lg text-muted-foreground md:text-xl">
+        Add one script tag with your Project ID to any site: WordPress, Webflow,
+        static HTML, or an app built with Vue, Angular, Svelte, or any other
+        framework. In a React or Next.js app, you can instead run npm install
+        @fasterfixes/react and wrap the app in FeedbackProvider with your
+        Project ID. Both embeds share the same widget, options, and captured
+        context. See the{" "}
+        <DocLink href={"/docs/widget/install/script-embed" as Route}>
+          script embed docs
+        </DocLink>
+        , the{" "}
+        <DocLink href={"/docs/widget/install/react" as Route}>
+          React embed docs
+        </DocLink>
+        , and the{" "}
         <DocLink href={"/docs/getting-started/quickstart" as Route}>
           quickstart
         </DocLink>
@@ -130,24 +135,26 @@ export const atarimFaqs: RichFaqItem[] = [
   {
     question: "Does FasterFixes work on non-React stacks?",
     answer:
-      "Partially. FasterFixes has a basic HTML embed for non-React pages. The full context capture — React component tree, DOM selector — is only available with the React widget. Atarim's JS snippet, Chrome extension, and WordPress plugin work on any stack. If your project is WordPress, plain HTML, or a non-React framework, Atarim has broader compatibility today.",
+      "Yes. The script embed installs the widget with one script tag on any site, including WordPress and plain HTML, with the same screenshot, DOM selector, URL, browser, viewport, console, and network capture as the React embed. The React component path is added when the site runs React. Atarim still offers a dedicated WordPress plugin and a Chrome extension, which FasterFixes does not.",
     content: (
-      <p className="text-muted-foreground text-lg md:text-xl">
-        Partially. FasterFixes has a basic HTML embed for non-React pages.
-        The full context capture — React component tree, DOM selector — is
-        only available with the React widget. Atarim&apos;s JS snippet,
-        Chrome extension, and WordPress plugin work on any stack. See the{" "}
-        <DocLink href={"/docs/widget/other-frameworks" as Route}>
-          other frameworks page
-        </DocLink>{" "}
-        for the latest status.
+      <p className="text-lg text-muted-foreground md:text-xl">
+        Yes. The script embed installs the widget with one script tag on any
+        site, including WordPress and plain HTML, with the same screenshot, DOM
+        selector, URL, browser, viewport, console, and network capture as the
+        React embed. The React component path is added when the site runs React.
+        Atarim still offers a dedicated WordPress plugin and a Chrome extension,
+        which FasterFixes does not. See the{" "}
+        <DocLink href={"/docs/widget/install/script-embed" as Route}>
+          script embed docs
+        </DocLink>
+        .
       </p>
     ),
   },
   {
     question: "How do I migrate from Atarim?",
     answer:
-      "Four steps: export open tasks from Atarim via CSV or your connected PM tool, deploy FasterFixes (self-hosted or hosted Pro), replace the Atarim JS snippet (or WordPress plugin) with @fasterfixes/react, then invite your team and connect GitHub, Linear, or Jira for two-way sync. The full guide is in the migration section above.",
+      "Four steps: export open tasks from Atarim via CSV or your connected PM tool, deploy FasterFixes (self-hosted or hosted Pro), replace the Atarim JS snippet (or WordPress plugin) with the FasterFixes script tag or @fasterfixes/react, then invite your team and connect GitHub, Linear, or Jira for two-way sync. The full guide is in the migration section above.",
   },
   {
     question: "Is FasterFixes open source?",
@@ -175,7 +182,7 @@ export function AtarimFaqSection() {
                 </AccordionTrigger>
                 <AccordionContent>
                   {faq.content ?? (
-                    <p className="text-muted-foreground text-lg md:text-xl">
+                    <p className="text-lg text-muted-foreground md:text-xl">
                       {faq.answer}
                     </p>
                   )}

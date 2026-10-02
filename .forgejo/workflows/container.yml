@@ -73,6 +73,7 @@ jobs:
           MIGRATOR_COMMIT_TAG="${IMAGE_NAME}:sha-${COMMIT_SHA}-migrator"
 
           docker build \
+            --build-arg SOURCE_REVISION="$COMMIT_SHA" \
             --target runner \
             --tag "${IMAGE_NAME}:main" \
             --tag "$APP_COMMIT_TAG" \
@@ -81,6 +82,7 @@ jobs:
           docker push "$APP_COMMIT_TAG"
 
           docker build \
+            --build-arg SOURCE_REVISION="$COMMIT_SHA" \
             --target migrator \
             --tag "${IMAGE_NAME}:main-migrator" \
             --tag "$MIGRATOR_COMMIT_TAG" \

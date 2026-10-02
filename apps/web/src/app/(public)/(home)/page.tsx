@@ -4,10 +4,10 @@ import {
   SITE_NAME,
   SITE_TAGLINE,
 } from "@/app/_constants/seo";
-import { FaqSchema } from "@/app/_features/seo/faq-schema";
-import { OrganizationSchema } from "@/app/_features/seo/organization-schema";
-import { SoftwareApplicationSchema } from "@/app/_features/seo/software-application-schema";
-import { WebSiteSchema } from "@/app/_features/seo/website-schema";
+import { FaqSchema } from "@/app/_components/seo/faq-schema";
+import { OrganizationSchema } from "@/app/_components/seo/organization-schema";
+import { SoftwareApplicationSchema } from "@/app/(public)/_components/seo/software-application-schema";
+import { WebSiteSchema } from "@/app/_components/seo/website-schema";
 import type { Metadata } from "next";
 
 import { BeforeAfterSection } from "./_features/before-after-section";
@@ -19,12 +19,12 @@ import { HowItWorksSection } from "./_features/how-it-works/how-it-works-section
 import { IntegrationsSection } from "./_features/integrations-section";
 import { ProblemSection } from "./_features/problem/problem-section";
 import { SolutionSection } from "./_features/solution/solution-section";
-import { DemoFeedbackProvider } from "./_features/widget-demo/demo-feedback-provider.client";
+import { DemoWidget } from "./_features/widget-demo/demo-widget.client";
 import { WorksWithSection } from "./_features/works-with-section";
 
 export const metadata: Metadata = {
   title: {
-    absolute: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    absolute: `${SITE_NAME}: ${SITE_TAGLINE}`,
   },
   description: SITE_META_DESCRIPTION,
   keywords: [
@@ -33,6 +33,8 @@ export const metadata: Metadata = {
     "visual feedback tool",
     "client feedback tool",
     "open source feedback widget",
+    "feedback widget for any website",
+    "WordPress feedback widget",
     "feedback widget for Next.js",
     "feedback widget React",
     "MCP server bug tracking",
@@ -47,19 +49,19 @@ export const metadata: Metadata = {
     canonical: APP_URL,
   },
   openGraph: {
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    title: `${SITE_NAME}: ${SITE_TAGLINE}`,
     description: SITE_META_DESCRIPTION,
     url: APP_URL,
   },
   twitter: {
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    title: `${SITE_NAME}: ${SITE_TAGLINE}`,
     description: SITE_META_DESCRIPTION,
   },
 };
 
 export default function Page() {
   return (
-    <DemoFeedbackProvider>
+    <>
       <div>
         <HeroSection />
         <WorksWithSection />
@@ -77,6 +79,7 @@ export default function Page() {
         <WebSiteSchema />
         <SoftwareApplicationSchema />
       </div>
-    </DemoFeedbackProvider>
+      <DemoWidget />
+    </>
   );
 }

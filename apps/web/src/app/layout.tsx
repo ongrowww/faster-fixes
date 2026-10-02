@@ -1,17 +1,17 @@
 import { APP_URL } from "@/app/_constants/app";
 import { SITE_META_DESCRIPTION, SITE_NAME } from "@/app/_constants/seo";
-import { TRPCProviderWrapper as TRPCProvider } from "@/lib/trpc/trpc-provider";
+import { TRPCProviderWrapper as TRPCProvider } from "@/lib/trpc/trpc-provider.client";
 import { FeedbackProvider } from "@fasterfixes/react";
+import { Analytics } from "@vercel/analytics/next";
 import "@workspace/ui/globals.css";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
 import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
-import Script from "next/script";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
-import { StopImpersonateButton } from "./_features/auth/stop-impersonate-button/stop-impersonate-button.client";
-import { ConsentProvider } from "./_features/c15t/consent-provider";
+import { StopImpersonateButton } from "./_domains/auth/stop-impersonate-button/stop-impersonate-button.client";
+import { ConsentProvider } from "./_providers/consent-provider.client";
 
 const fontSans = Space_Grotesk({
   subsets: ["latin"],
@@ -78,11 +78,7 @@ export default function RootLayout({
                 <FeedbackProvider
                   projectId={process.env.NEXT_PUBLIC_FF_API_KEY ?? ""}
                   apiOrigin={process.env.NEXT_PUBLIC_FF_API_ORIGIN}
-                  classNames={{
-                    button:
-                      "bg-primary text-primary-foreground hover:bg-primary/90",
-                  }}
-                  position="bottom-left"
+                  position="bottom-right"
                   captureDiagnostics={true}
                 >
                   <RootProvider>{children}</RootProvider>
@@ -94,12 +90,7 @@ export default function RootLayout({
           </ConsentProvider>
         </ThemeProvider>
 
-        <Script
-          defer
-          src="https://umami-analytics-swart.vercel.app/script.js"
-          data-website-id="8308ff4b-0aab-4cee-9042-359d0217a5e8"
-          strategy="afterInteractive"
-        />
+        <Analytics />
       </body>
     </html>
   );

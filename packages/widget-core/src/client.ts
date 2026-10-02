@@ -22,11 +22,11 @@ export class FasterFixesClient implements FeedbackClient {
 
   constructor(options: ClientOptions) {
     this.apiKey = options.apiKey;
+    this.reviewImageId = options.reviewImageId;
     this.apiOrigin = (options.apiOrigin ?? DEFAULT_API_ORIGIN).replace(
       /\/$/,
       "",
     );
-    this.reviewImageId = options.reviewImageId;
   }
 
   private headers(reviewerToken?: string): HeadersInit {
@@ -36,21 +36,15 @@ export class FasterFixesClient implements FeedbackClient {
     if (reviewerToken) {
       h["X-Reviewer-Token"] = reviewerToken;
     }
-    if (this.reviewImageId) {
-      h["X-Review-Image"] = this.reviewImageId;
-    }
+    if (this.reviewImageId) h["X-Review-Image"] = this.reviewImageId;
     return h;
   }
 
   private async request<T>(path: string, init: RequestInit): Promise<T> {
     const res = await fetch(`${this.apiOrigin}${path}`, init);
     if (!res.ok) {
-      const body = await res.json().catch(() => ({ error: "Request failed" }));
-      throw new ApiError(
-        res.status,
-        body.error ?? "Request failed",
-        body.details,
-      );
+      const body: unknown = await res.json().catch(() => null);
+      throw toApiError(res.status, body);
     }
     // 204 No Content
     if (res.status === 204) return undefined as T;
@@ -129,6 +123,19 @@ export class FasterFixesClient implements FeedbackClient {
       body: formData,
     });
   }
+}
+
+// The error body comes from the network, so its shape is checked rather than trusted.
+function toApiError(status: number, body: unknown) {
+  if (typeof body !== "object" || body === null) {
+    return new ApiError(status, "Request failed");
+  }
+  const message =
+    "error" in body && typeof body.error === "string"
+      ? body.error
+      : "Request failed";
+  const details = "details" in body ? body.details : undefined;
+  return new ApiError(status, message, details);
 }
 
 export class ApiError extends Error {

@@ -16,9 +16,7 @@ import { AlertTriangle } from "lucide-react";
 import { GitHubConnected } from "./github-connected.client";
 import { GitHubNotConnected } from "./github-not-connected.client";
 
-type GitHubIntegrationSectionProps = {
-  githubAppName?: string;
-};
+type GitHubIntegrationSectionProps = { githubAppName?: string };
 
 export function GitHubIntegrationSection({
   githubAppName,

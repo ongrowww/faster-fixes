@@ -7,32 +7,26 @@ type GitHubNotConnectedProps = {
   githubAppName?: string;
 };
 
-export function GitHubNotConnected({
-  githubAppName,
-}: GitHubNotConnectedProps) {
+export function GitHubNotConnected({ githubAppName }: GitHubNotConnectedProps) {
   const installationUrl = githubAppName
     ? `https://github.com/apps/${githubAppName}/installations/new`
     : undefined;
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-muted-foreground text-sm">
+      <p className="text-sm text-muted-foreground">
         No GitHub account connected. Install the Faster Fixes GitHub App to
         enable automatic issue creation from feedback.
       </p>
       {installationUrl ? (
         <Button asChild>
-          <a
-            href={installationUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href={installationUrl} target="_blank" rel="noopener noreferrer">
             <GithubIcon className="size-4" />
             Connect to GitHub
           </a>
         </Button>
       ) : (
-        <p className="text-destructive text-sm">
+        <p className="text-sm text-destructive">
           The GitHub App is not configured for this installation.
         </p>
       )}

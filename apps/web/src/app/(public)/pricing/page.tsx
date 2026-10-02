@@ -5,23 +5,50 @@ import {
   PLAN_FEATURES,
   PLAN_PRICES,
   SubscriptionPlanName,
-} from "@/server/auth/config/subscription-plans";
+} from "@/app/_domains/subscription";
 import { Button } from "@workspace/ui/components/button";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FaqSchema } from "@/app/_features/seo/faq-schema";
+import { BreadcrumbSchema } from "@/app/_components/seo/breadcrumb-schema";
+import { FaqSchema } from "@/app/_components/seo/faq-schema";
+import { SoftwareApplicationSchema } from "@/app/(public)/_components/seo/software-application-schema";
+import { WebPageSchema } from "@/app/_components/seo/web-page-schema";
 import { PricingCard } from "./_features/pricing-card";
 import {
   PricingFaqSection,
   pricingFaqs,
 } from "./_features/pricing-faq-section";
 
+const pageUrl = `${APP_URL}/pricing`;
+// GSC shows the impressions here come from competitor price research
+// ("atarim pricing", "ruttl pricing"), not from brand queries — so the snippet
+// leads with the numbers and the flat-rate model rather than "simple pricing".
+const title = "Pricing: $0 self-hosted, $20/mo flat rate";
+const description =
+  "Self-host free under AGPL-3.0, or $20/month flat for up to 5 members and $99 for unlimited. Flat rate, not per seat. See what you would actually pay.";
+
 export const metadata: Metadata = {
-  title: "Pricing",
-  description:
-    "Simple, transparent pricing. Start free, upgrade when you need more.",
+  title,
+  description,
+  keywords: [
+    "FasterFixes pricing",
+    "feedback widget pricing",
+    "flat rate feedback tool",
+    "self-hosted feedback widget pricing",
+    "bug tracking without per-seat pricing",
+  ],
   alternates: {
-    canonical: `${APP_URL}/pricing`,
+    canonical: pageUrl,
+  },
+  openGraph: {
+    title,
+    description,
+    url: pageUrl,
+    type: "website",
+  },
+  twitter: {
+    title,
+    description,
   },
 };
 
@@ -32,7 +59,7 @@ export default function Page() {
         <div className="container mx-auto px-4">
           <div className="mx-auto mb-12 max-w-2xl text-center">
             <h1 className="text-3xl font-bold md:text-5xl">Pricing</h1>
-            <p className="text-muted-foreground mt-4 text-lg">
+            <p className="mt-4 text-lg text-muted-foreground">
               Start free, upgrade when you need more.
             </p>
           </div>
@@ -68,6 +95,21 @@ export default function Page() {
       <PricingFaqSection />
 
       <FaqSchema faqs={pricingFaqs} />
+
+      <SoftwareApplicationSchema />
+
+      <WebPageSchema
+        title={title}
+        description={description}
+        url={pageUrl}
+        aboutId={`${APP_URL}#software`}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: APP_URL },
+          { name: "Pricing", url: pageUrl },
+        ]}
+      />
     </div>
   );
 }

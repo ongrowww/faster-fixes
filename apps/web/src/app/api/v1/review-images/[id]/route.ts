@@ -1,20 +1,21 @@
-import { resolveProject } from "@/server/api/resolve-project";
-import { validateReviewer } from "@/server/api/validate-reviewer";
+import { findProjectByPublicId } from "@/app/_domains/project/_services/find-project-by-public-id";
+import { findReviewerByToken } from "@/app/_domains/project/_services/find-reviewer-by-token";
+import { findReviewImage } from "@/app/_domains/project/_services/find-review-image";
 import { getSignedAssetUrl } from "@/server/storage/get-signed-asset-url";
-import { prisma } from "@workspace/db";
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
-  const project = await resolveProject(req.headers.get("x-api-key"));
+  const project = await findProjectByPublicId(req.headers.get("x-api-key"));
   if (!project) {
     return NextResponse.json(
       { error: "Invalid review link." },
       { status: 403 },
     );
   }
-  const reviewer = await validateReviewer(
+  const reviewer = await findReviewerByToken(
     req.headers.get("x-reviewer-token"),
     project.id,
   );
@@ -24,16 +25,11 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       { status: 403 },
     );
   }
-
   const { id } = await params;
-  const image = await prisma.reviewImage.findFirst({
-    where: { publicId: id, projectId: project.id, archivedAt: null },
-    include: { asset: true },
-  });
+  const image = await findReviewImage({ publicId: id, projectId: project.id });
   if (!image) {
     return NextResponse.json({ error: "Image not found." }, { status: 404 });
   }
-
   return NextResponse.json({
     id: image.publicId,
     filename: image.asset.filename,

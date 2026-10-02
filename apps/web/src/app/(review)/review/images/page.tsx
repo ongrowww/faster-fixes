@@ -1,4 +1,4 @@
-import { ReviewImagesGallery } from "./review-images-gallery.client";
+import { ReviewImagesGallery } from "./_features/review-images-gallery.client";
 import { Suspense } from "react";
 
 export default function ReviewImagesPage() {

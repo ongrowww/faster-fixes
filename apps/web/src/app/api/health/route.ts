@@ -1,13 +1,12 @@
-import { prisma } from "@workspace/db";
 import { NextResponse } from "next/server";
+
+import { getDatabaseHealth } from "./_services/get-database-health";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    return NextResponse.json({ status: "ok" });
-  } catch {
-    return NextResponse.json({ status: "unhealthy" }, { status: 503 });
-  }
+  const health = await getDatabaseHealth();
+  return NextResponse.json(health, {
+    status: health.status === "ok" ? 200 : 503,
+  });
 }

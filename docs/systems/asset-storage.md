@@ -90,17 +90,16 @@ The `key` field is the storage path within the bucket. Use this format:
 
 Examples of existing contexts (from `/api/upload`):
 
-| Context                | Typical MIME types            |
-| ---------------------- | ----------------------------- |
-| `profile-image`        | `image/*`                     |
-| `company-media`        | `image/*`                     |
-| `organization-logo`    | `image/*`                     |
-| `animal-profile-image` | `image/*`                     |
-| `animal-media`         | `image/*`                     |
-| `event-cover-image`    | `image/*`                     |
-| `activity-image`       | `image/*`                     |
-| `professional-records` | `image/*`, `application/pdf`  |
-| `review-images`        | PNG, JPEG, WebP (up to 10 MB) |
+| Context                | Typical MIME types           |
+| ---------------------- | ---------------------------- |
+| `profile-image`        | `image/*`                    |
+| `company-media`        | `image/*`                    |
+| `organization-logo`    | `image/*`                    |
+| `animal-profile-image` | `image/*`                    |
+| `animal-media`         | `image/*`                    |
+| `event-cover-image`    | `image/*`                    |
+| `activity-image`       | `image/*`                    |
+| `professional-records` | `image/*`, `application/pdf` |
 
 ## Usage
 
@@ -217,11 +216,16 @@ The current flow (client → S3, then tRPC mutation) can leave orphan files if t
 - If orphans ever become a concern, add a scheduled cleanup job (Inngest cron) that scans the bucket for keys with no matching Asset row and deletes them after a 24h grace period
 - This is a standard pattern used by most systems with object storage (Stripe, Cloudflare, AWS)
 
-### Review Images
+### Review images and self-hosted storage
 
 Reviewer uploads use the `review-image` Better Upload route and the key
-`review-images/{projectId}/{uuid}.{extension}`. The browser finalizes a
-successful direct upload through `POST /api/v1/review-images`; the endpoint
-creates the `Asset` and `ReviewImage` rows in one database transaction.
-Access requires an active Reviewer token for the same Project. URLs returned to
-the gallery, dashboard, and tracker integrations are signed and temporary.
+`review-images/{projectId}/{reviewerId}/{uuid}.{extension}`. The browser finalizes a successful
+direct upload through `POST /api/v1/review-images`; the endpoint creates the
+`Asset` and `ReviewImage` rows in one database transaction. Access requires an
+active Reviewer token for the same Project. URLs returned to the gallery,
+dashboard, and tracker integrations are signed and temporary.
+
+`STORAGE_PROVIDER` selects `r2` (the default) or `s3`. The latter uses
+`STORAGE_ENDPOINT`, `STORAGE_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+and optional `STORAGE_FORCE_PATH_STYLE`. The endpoint is an origin without a path.
+The same configured client signs uploads and downloads; buckets can stay private.

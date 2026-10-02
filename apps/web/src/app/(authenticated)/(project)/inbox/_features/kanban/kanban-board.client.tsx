@@ -1,6 +1,6 @@
 "use client";
 
-import { useFeedbackMutations } from "@/app/(authenticated)/(project)/inbox/_features/use-feedback-mutations";
+import { useFeedbackMutations } from "@/app/(authenticated)/(project)/inbox/_features/feedback-mutations/use-feedback-mutations";
 import {
   closestCorners,
   DndContext,
@@ -8,18 +8,20 @@ import {
   DragOverlay,
   type DragStartEvent,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import * as React from "react";
 import { BulkActionToolbar } from "../actions-toolbar/bulk-action-toolbar.client";
-import type { GetFeedbackOutput } from "../get-feedback.trpc.query";
+import type { ListFeedbackOutput } from "../../_services/list-feedback";
+import { BoardSummaryStrip } from "./board-summary-strip";
 import { KanbanCardOverlay } from "./kanban-card.client";
-import { KanbanColumnBody, KanbanColumnHeader } from "./kanban-column.client";
+import { KanbanColumnBody } from "./kanban-column.client";
 import { KanbanMobile } from "./kanban-mobile.client";
 
-type FeedbackItem = GetFeedbackOutput[number];
+type FeedbackItem = ListFeedbackOutput[number];
 
 type KanbanBoardProps = {
   feedback: FeedbackItem[];
@@ -64,9 +66,12 @@ export function KanbanBoard({
   const [activeId, setActiveId] = React.useState<string | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      // Slightly higher distance so a quick click never starts a drag.
-      activationConstraint: { distance: 6 },
+    // The whole card is the drag source, so a click must still open it: the
+    // mouse drags only after moving, touch only after a long press (so the
+    // board still scrolls).
+    useSensor(MouseSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
     }),
     useSensor(KeyboardSensor),
   );
@@ -90,22 +95,11 @@ export function KanbanBoard({
       map[item.status]?.push(item);
     }
     // Sort each column
-    for (const key of Object.keys(map)) {
-      map[key] = sortFeedback(map[key]!, sort);
+    for (const [key, items] of Object.entries(map)) {
+      map[key] = sortFeedback(items, sort);
     }
     return map;
   }, [filtered, sort]);
-
-  const totalCount = filtered.length;
-
-  const bulkToolbar = (
-    <BulkActionToolbar
-      selectedItems={feedback.filter((f) => selectedIds.has(f.id))}
-      onMoveToStatus={(status) => handleBulkAction(status)}
-      onArchive={() => handleBulkAction("closed")}
-      onClearSelection={() => setSelectedIds(new Set())}
-    />
-  );
 
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id as string);
@@ -165,12 +159,24 @@ export function KanbanBoard({
     setSelectedIds(new Set());
   }
 
+  const bulkToolbar = (
+    <BulkActionToolbar
+      selectedItems={feedback.filter((f) => selectedIds.has(f.id))}
+      onMoveToStatus={(status) => handleBulkAction(status)}
+      onArchive={() => handleBulkAction("closed")}
+      onClearSelection={() => setSelectedIds(new Set())}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          {totalCount} {totalCount === 1 ? "item" : "items"}
-        </p>
+      <div className="hidden lg:block">
+        <BoardSummaryStrip
+          columns={COLUMNS}
+          feedback={filtered}
+          selectedIds={selectedIds}
+          onToggleSelectAll={handleToggleSelectAll}
+        />
       </div>
 
       <KanbanMobile
@@ -182,21 +188,6 @@ export function KanbanBoard({
         onToggleSelectAll={handleToggleSelectAll}
         onSelectFeedback={onSelectFeedback}
       />
-
-      {/* Desktop: column headers */}
-      <div className="hidden gap-4 lg:grid lg:grid-cols-3">
-        {COLUMNS.map((col) => (
-          <KanbanColumnHeader
-            key={col.id}
-            id={col.id}
-            title={col.title}
-            count={(grouped[col.id] ?? []).length}
-            selectedIds={selectedIds}
-            itemIds={(grouped[col.id] ?? []).map((i) => i.id)}
-            onToggleSelectAll={handleToggleSelectAll}
-          />
-        ))}
-      </div>
 
       <div className="hidden lg:block">{bulkToolbar}</div>
 
@@ -227,7 +218,6 @@ export function KanbanBoard({
             <KanbanCardOverlay
               feedback={activeFeedback}
               isSelected={selectedIds.has(activeFeedback.id)}
-              selectionMode={selectedIds.size > 0}
             />
           ) : null}
         </DragOverlay>

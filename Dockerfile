@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:24-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS base
+FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS base
 
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
@@ -17,7 +17,8 @@ WORKDIR /app
 FROM base AS dependencies
 
 COPY . .
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
+RUN DATABASE_URL=postgresql://build:build@127.0.0.1:5432/build pnpm --filter @workspace/db db:gen
 
 FROM dependencies AS builder
 
@@ -45,7 +46,7 @@ ENV JIRA_TOKEN_ENCRYPTION_KEY=00000000000000000000000000000000000000000000000000
 ENV NEXT_PUBLIC_FF_API_ORIGIN=$APP_ORIGIN
 ENV NEXT_PUBLIC_IS_CLOUD=false
 
-RUN pnpm build
+RUN pnpm build:packages && pnpm --filter web build
 
 FROM base AS migrator
 
@@ -54,7 +55,9 @@ ENV COREPACK_HOME=/opt/corepack
 ENV RUN_AS_UID=1000
 ENV RUN_AS_GID=1000
 
+ARG SOURCE_REVISION=unknown
 LABEL org.opencontainers.image.source="https://git.ongrow.de/ongrow/faster-fixes"
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION
 
 COPY --from=dependencies --chown=node:node /app /app
 
@@ -66,7 +69,7 @@ RUN cp -a /root/.cache/node/corepack /opt/corepack \
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 CMD ["pnpm", "--dir", "packages/database", "exec", "prisma", "migrate", "deploy"]
 
-FROM node:24-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS runner
+FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS runner
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -75,13 +78,17 @@ ENV PORT=3000
 ENV RUN_AS_UID=1001
 ENV RUN_AS_GID=1001
 
+ARG SOURCE_REVISION=unknown
 LABEL org.opencontainers.image.source="https://git.ongrow.de/ongrow/faster-fixes"
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION
 
 WORKDIR /app
 
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends ca-certificates openssl util-linux \
     && rm -rf /var/lib/apt/lists/*
+
+RUN npm install --global npm@12.2.0
 
 RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs nextjs
 

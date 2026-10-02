@@ -15,8 +15,6 @@ if (databaseAdapter !== "neon" && databaseAdapter !== "postgres") {
   );
 }
 
-// Keep Neon as the production default for upstream compatibility. Self-hosted
-// installations can select the standard PostgreSQL TCP adapter explicitly.
 const adapter =
   databaseAdapter === "neon"
     ? new PrismaNeon({ connectionString })

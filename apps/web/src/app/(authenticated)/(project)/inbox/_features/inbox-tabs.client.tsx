@@ -1,6 +1,6 @@
 "use client";
 
-import { useActiveProject } from "@/app/_features/project/active-project-provider.client";
+import { useActiveProject } from "@/app/_domains/project/active-project/active-project-provider.client";
 import { useTRPC } from "@/lib/trpc/trpc-client";
 import { matchQueryStatus } from "@/utils/tanstack-query/match-query-status";
 import { useQuery } from "@tanstack/react-query";
@@ -18,7 +18,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
-import { AlertCircle, Archive, Inbox } from "lucide-react";
+import { AlertCircle, Archive, Inbox, SquareKanban } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import * as React from "react";
 import { ArchiveTab } from "./archive/archive-tab.client";
@@ -28,7 +28,10 @@ import { KanbanBoard } from "./kanban/kanban-board.client";
 
 export function InboxTabs() {
   const { activeProject } = useActiveProject();
-  const projectId = activeProject!.id;
+  if (!activeProject) {
+    throw new Error("InboxTabs must render under an active Project.");
+  }
+  const projectId = activeProject.id;
   const trpc = useTRPC();
 
   const [view, setView] = useQueryState(
@@ -45,12 +48,6 @@ export function InboxTabs() {
 
   const feedbackQuery = useQuery(
     trpc.authenticated.projects.feedback.list.queryOptions({ projectId }),
-  );
-
-  const pageUrlsQuery = useQuery(
-    trpc.authenticated.projects.feedback.distinctPageUrls.queryOptions({
-      projectId,
-    }),
   );
 
   const gitHubLinkQuery = useQuery(
@@ -76,7 +73,7 @@ export function InboxTabs() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <TabsList>
             <TabsTrigger value="board">
-              <Inbox className="mr-1.5 size-4" />
+              <SquareKanban className="mr-1.5 size-4" />
               Board
             </TabsTrigger>
             <TabsTrigger value="archive">
@@ -87,7 +84,7 @@ export function InboxTabs() {
 
           {view === "board" && (
             <FeedbackFilters
-              pageUrls={pageUrlsQuery.data ?? []}
+              projectId={projectId}
               selectedPageUrl={pageUrlFilter}
               onPageUrlChange={setPageUrlFilter}
               sort={sort}
@@ -155,7 +152,7 @@ export function InboxTabs() {
         </TabsContent>
 
         <TabsContent value="archive" className="mt-4">
-          <ArchiveTab />
+          <ArchiveTab projectId={projectId} />
         </TabsContent>
       </Tabs>
 
@@ -163,7 +160,7 @@ export function InboxTabs() {
         feedback={selectedFeedback}
         open={!!selectedFeedbackId}
         onOpenChange={(open) => {
-          if (!open) setSelectedFeedbackId(null);
+          if (!open) void setSelectedFeedbackId(null);
         }}
         projectId={projectId}
         hasGitHubLink={!!gitHubLinkQuery.data}

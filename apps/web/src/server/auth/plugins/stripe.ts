@@ -1,7 +1,17 @@
 import { SUBSCRIPTION_PLANS } from "@/server/auth/config/subscription-plans";
+import { authorizeBillingReference } from "@/server/auth/subscription/authorize-billing-reference";
 import { stripeApi } from "@/server/stripe";
+import { requireEnv } from "@/utils/environment/require-env";
 import { stripe } from "@better-auth/stripe";
 import { prisma } from "@workspace/db";
+
+if (
+  process.env.NODE_ENV === "production" &&
+  process.env.NEXT_PUBLIC_IS_CLOUD === "true" &&
+  !process.env.STRIPE_WEBHOOK_SIGNING_SECRET
+) {
+  throw new Error("STRIPE_WEBHOOK_SIGNING_SECRET is required in production");
+}
 
 export const stripePlugin = stripe({
   stripeClient: stripeApi,
@@ -42,32 +52,23 @@ export const stripePlugin = stripe({
         },
       });
     },
-    authorizeReference: async ({ user, referenceId, action }) => {
-      // Check if the user has permission to manage subscriptions for this reference
-      if (
-        action === "upgrade-subscription" ||
-        action === "cancel-subscription" ||
-        action === "restore-subscription"
-      ) {
-        const org = await prisma.member.findFirst({
-          where: {
-            organizationId: referenceId,
-            userId: user.id,
-          },
-        });
-
-        return org?.role === "owner";
-      }
-
-      // For other actions, authorize
-      return true;
-    },
+    authorizeReference: ({ user, referenceId, action }) =>
+      authorizeBillingReference({
+        userId: user.id,
+        organizationId: referenceId,
+        action,
+      }),
     plans: SUBSCRIPTION_PLANS,
     getCheckoutSessionParams: async ({ plan }) => ({
       params: {
         allow_promotion_codes: true,
         subscription_data: {
-          default_tax_rates: [process.env.STRIPE_DEFAULT_TAX_RATE_ID!],
+          default_tax_rates: [
+            requireEnv(
+              "STRIPE_DEFAULT_TAX_RATE_ID",
+              process.env.STRIPE_DEFAULT_TAX_RATE_ID,
+            ),
+          ],
           ...(plan.freeTrial?.days && {
             trial_period_days: plan.freeTrial.days,
           }),

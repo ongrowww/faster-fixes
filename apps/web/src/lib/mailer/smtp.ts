@@ -2,13 +2,8 @@ import "server-only";
 
 import nodemailer from "nodemailer";
 
-import {
-  Contact,
-  EmailError,
-  EmailResponse,
-  Mailer,
-  MailOptions,
-} from "./types";
+import { EmailError } from "./types";
+import type { Contact, EmailResponse, Mailer, MailOptions } from "./types";
 
 function unsupportedContactsFeature(): never {
   throw new EmailError(
@@ -49,7 +44,7 @@ export class SmtpMailer implements Mailer {
       return {
         success: true,
         message: "Email sent successfully",
-        data: { messageId: result.messageId },
+        data: { messageId: String(result.messageId) },
       };
     },
   };
