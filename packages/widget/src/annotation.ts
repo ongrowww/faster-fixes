@@ -1,3 +1,4 @@
+import type { AnnotationTarget } from "./options.js";
 import type { PinPoint } from "./pin-placement.js";
 
 type AnnotationActions = {
@@ -34,16 +35,27 @@ export function createAnnotationMode(
   document: Document,
   overlay: HTMLElement,
   { onSelect, onCancel }: AnnotationActions,
+  target?: AnnotationTarget,
 ): AnnotationMode {
   let listening: AbortController | null = null;
   let previousCursor = "";
+  let restoreTargets: (() => void)[] = [];
+
+  function resolveClickTarget(event: Event) {
+    if (!(event.target instanceof Element)) return null;
+    return target ? event.target.closest(target.selector) : event.target;
+  }
 
   function hideOverlay() {
     overlay.hidden = true;
   }
 
   function handleMouseMove(event: MouseEvent) {
-    if (isWidgetEvent(event) || !(event.target instanceof Element)) {
+    if (
+      target?.mode === "point" ||
+      isWidgetEvent(event) ||
+      !(event.target instanceof Element)
+    ) {
       hideOverlay();
       return;
     }
@@ -58,20 +70,34 @@ export function createAnnotationMode(
   }
 
   function handleClick(event: MouseEvent) {
-    if (isWidgetEvent(event) || !(event.target instanceof Element)) return;
+    if (isWidgetEvent(event)) return;
+    const element = resolveClickTarget(event);
+    if (!element) return;
     blockEvent(event);
-    onSelect(event.target, { x: event.clientX, y: event.clientY });
+    onSelect(element, { x: event.clientX, y: event.clientY });
   }
 
   // Without this, a pointer press on the page could close a host dialog or
   // move focus before the click selects the element.
   function handlePress(event: Event) {
-    if (isWidgetEvent(event)) return;
+    if (isWidgetEvent(event) || !resolveClickTarget(event)) return;
     blockEvent(event);
   }
 
   function handleKeyDown(event: KeyboardEvent) {
-    if (event.key === "Escape") onCancel();
+    if (event.key === "Escape") {
+      onCancel();
+      return;
+    }
+    if (!target || (event.key !== "Enter" && event.key !== " ")) return;
+    const element = document.activeElement?.closest(target.selector);
+    if (!element) return;
+    blockEvent(event);
+    const rect = element.getBoundingClientRect();
+    onSelect(element, {
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+    });
   }
 
   return {
@@ -88,13 +114,35 @@ export function createAnnotationMode(
       view.addEventListener("pointerdown", handlePress, options);
       document.addEventListener("keydown", handleKeyDown, options);
       previousCursor = document.body.style.cursor;
-      document.body.style.cursor = "crosshair";
+      if (target) {
+        restoreTargets = [
+          ...document.querySelectorAll<HTMLElement>(target.selector),
+        ].map((element) => {
+          const cursor = element.style.cursor;
+          const attributes = ["role", "tabindex", "aria-label"].map(
+            (name) => [name, element.getAttribute(name)] as const,
+          );
+          element.style.cursor = "crosshair";
+          element.setAttribute("role", "button");
+          element.setAttribute("tabindex", "0");
+          element.setAttribute("aria-label", target.label);
+          return () => {
+            element.style.cursor = cursor;
+            attributes.forEach(([name, value]) => {
+              if (value === null) element.removeAttribute(name);
+              else element.setAttribute(name, value);
+            });
+          };
+        });
+      } else document.body.style.cursor = "crosshair";
     },
     stop() {
       if (!listening) return;
       listening.abort();
       listening = null;
       document.body.style.cursor = previousCursor;
+      restoreTargets.forEach((restore) => restore());
+      restoreTargets = [];
       hideOverlay();
     },
   };

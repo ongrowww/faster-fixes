@@ -41,6 +41,11 @@ export const createGitHubIssue = inngest.createFunction(
         },
         reviewer: { select: { name: true } },
         screenshot: { select: { key: true, bucket: true } },
+        reviewImage: {
+          include: {
+            asset: { select: { key: true, bucket: true, filename: true } },
+          },
+        },
         issueLink: { select: { id: true } },
       },
     });
@@ -77,6 +82,12 @@ export const createGitHubIssue = inngest.createFunction(
     const dashboardUrl = `${baseUrl}/inbox?feedbackId=${feedback.id}`;
 
     const title = formatIssueTitle(feedback.comment);
+    const reviewImage = feedback.reviewImage
+      ? {
+          filename: feedback.reviewImage.asset.filename,
+          url: await getSignedAssetUrl(feedback.reviewImage.asset, 3600),
+        }
+      : null;
     const body = formatIssueBody({
       id: feedback.id,
       comment: feedback.comment,
@@ -95,6 +106,7 @@ export const createGitHubIssue = inngest.createFunction(
       diagnosticTrail: feedback.diagnosticTrail as DiagnosticTrail | null,
       projectId: feedback.projectId,
       dashboardUrl,
+      reviewImage,
     });
 
     const response = await octokit.request(

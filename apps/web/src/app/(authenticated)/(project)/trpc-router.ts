@@ -1,3 +1,7 @@
+import { listReviewImages } from "./images/_services/list-review-images";
+import { ListReviewImagesSchema } from "./images/_services/list-review-images.schema";
+import { updateReviewImageArchived } from "./images/_services/update-review-image-archived";
+import { UpdateReviewImageArchivedSchema } from "./images/_services/update-review-image-archived.schema";
 import { enforceFeature } from "@/server/trpc/middlewares/enforce-feature";
 import { protectedProcedure, router } from "@/server/trpc/trpc";
 import { headers } from "next/headers";
@@ -134,6 +138,18 @@ export const projectsRouter = router({
         userId: ctx.session.user.id,
       }),
     ),
+  reviewImage: router({
+    list: protectedProcedure
+      .input(ListReviewImagesSchema)
+      .query(({ input, ctx }) =>
+        listReviewImages({ ...input, userId: ctx.session.user.id }),
+      ),
+    updateArchived: protectedProcedure
+      .input(UpdateReviewImageArchivedSchema)
+      .mutation(({ input, ctx }) =>
+        updateReviewImageArchived({ ...input, userId: ctx.session.user.id }),
+      ),
+  }),
   reviewer: router({
     list: protectedProcedure
       .input(ListReviewersSchema)

@@ -1,3 +1,4 @@
+import type { VirtualElement } from "@floating-ui/dom";
 import {
   autoUpdate,
   computePosition,
@@ -13,7 +14,10 @@ export const POPOVER_FADEOUT_MS = 200;
  * Keeps `floating` under `reference`, flipped and shifted to stay on screen,
  * while the page scrolls and resizes. Returns the function that stops it.
  */
-export function anchorBelow(reference: Element, floating: HTMLElement) {
+export function anchorBelow(
+  reference: Element | VirtualElement,
+  floating: HTMLElement,
+) {
   return autoUpdate(reference, floating, () => {
     void computePosition(reference, floating, {
       strategy: "fixed",

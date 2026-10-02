@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { init } from "@fasterfixes/widget";
-import type { Labels, WidgetPosition } from "@fasterfixes/widget";
+import type {
+  AnnotationTarget,
+  Labels,
+  WidgetPosition,
+} from "@fasterfixes/widget";
 import { isDevelopment } from "./environment.js";
 import { WidgetSlotContext, createWidgetSlot } from "./widget-slot.js";
 
@@ -41,6 +45,10 @@ type FeedbackProviderProps = {
   // Capture a Diagnostic Trail (console + network) with each feedback. Code-managed,
   // not a dashboard setting; set false to opt a site out of capture entirely.
   captureDiagnostics?: boolean;
+  reviewerToken?: string;
+  reviewImageId?: string;
+  annotationTarget?: AnnotationTarget;
+  reviewImagesUrl?: string;
   children: React.ReactNode;
 };
 
@@ -91,10 +99,15 @@ export function FeedbackProvider({
   classNames,
   labels,
   captureDiagnostics = true,
+  reviewerToken,
+  reviewImageId,
+  annotationTarget,
+  reviewImagesUrl,
   children,
 }: FeedbackProviderProps) {
   const [slot] = useState(createWidgetSlot);
   const stableLabels = useShallowStable(labels);
+  const stableTarget = useShallowStable(annotationTarget);
 
   // Prefer projectId; fall back to the deprecated apiKey. The server resolves
   // either a `proj_` Project ID or a legacy `ff_` key from the same header.
@@ -112,6 +125,10 @@ export function FeedbackProvider({
       position,
       labels: stableLabels,
       captureDiagnostics,
+      reviewerToken,
+      reviewImageId,
+      annotationTarget: stableTarget,
+      reviewImagesUrl,
     });
     slot.set(widget);
     return () => {
@@ -127,6 +144,10 @@ export function FeedbackProvider({
     position,
     stableLabels,
     captureDiagnostics,
+    reviewerToken,
+    reviewImageId,
+    stableTarget,
+    reviewImagesUrl,
   ]);
 
   return (

@@ -10,7 +10,7 @@ import type { BetterAuthOptions } from "better-auth";
 export const emailVerification: NonNullable<
   BetterAuthOptions["emailVerification"]
 > = {
-  sendOnSignUp: true,
+  sendOnSignUp: process.env.EMAIL_VERIFICATION_REQUIRED !== "false",
   autoSignInAfterVerification: true,
   afterEmailVerification: async (user) => {
     // The middleware will automatically redirect to onboarding since the user

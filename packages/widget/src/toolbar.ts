@@ -19,6 +19,7 @@ export type Toolbar = {
   setPinsShown: (shown: boolean) => void;
   /** Reflects whether the Feedback list is open in the list control. */
   setListShown: (shown: boolean) => void;
+  destroy: () => void;
 };
 
 function tooltipSide(position: WidgetPosition) {
@@ -63,7 +64,7 @@ function createControl(
  */
 export function createToolbar(
   document: Document,
-  { labels, position }: ResolvedDisplayOptions,
+  { labels, position, reviewImagesUrl }: ResolvedDisplayOptions,
   { onStart, onExit, onTogglePins, onToggleList }: ToolbarActions,
 ): Toolbar {
   const side = tooltipSide(position);
@@ -79,7 +80,65 @@ export function createToolbar(
   trigger.setAttribute("aria-label", labels.startFeedback);
   trigger.appendChild(createIcon(document, "message", 18));
   trigger.appendChild(createTooltip(document, labels.startFeedback, side));
-  trigger.addEventListener("click", onStart);
+  const launcher = document.createElement("div");
+  launcher.className = "popover review-launcher";
+  launcher.hidden = true;
+  if (position.includes("left")) {
+    launcher.style.left = "64px";
+    launcher.style.right = "auto";
+  }
+  if (position.includes("top")) {
+    launcher.style.top = "0";
+    launcher.style.bottom = "auto";
+  }
+  launcher.setAttribute("role", "group");
+  launcher.setAttribute("aria-label", labels.chooseFeedbackType);
+  const pageAction = document.createElement("button");
+  pageAction.type = "button";
+  pageAction.className = "action action-secondary";
+  pageAction.textContent = labels.commentOnPage;
+  const imageAction = document.createElement("a");
+  imageAction.className = "action action-secondary";
+  imageAction.textContent = labels.reviewImages;
+  imageAction.target = "_blank";
+  imageAction.rel = "noopener noreferrer";
+  if (reviewImagesUrl) imageAction.href = reviewImagesUrl;
+  launcher.append(pageAction, imageAction);
+  const listening = new AbortController();
+  function closeLauncher() {
+    launcher.hidden = true;
+    trigger.setAttribute("aria-expanded", "false");
+  }
+  pageAction.addEventListener("click", () => {
+    closeLauncher();
+    onStart();
+  });
+  trigger.addEventListener("click", () => {
+    if (!reviewImagesUrl) {
+      onStart();
+      return;
+    }
+    launcher.hidden = !launcher.hidden;
+    trigger.setAttribute("aria-expanded", String(!launcher.hidden));
+    if (!launcher.hidden) pageAction.focus();
+  });
+  if (reviewImagesUrl) trigger.setAttribute("aria-expanded", "false");
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key !== "Escape" || launcher.hidden) return;
+      closeLauncher();
+      trigger.focus();
+    },
+    { signal: listening.signal },
+  );
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
+      if (!event.composedPath().includes(toolbar)) closeLauncher();
+    },
+    { signal: listening.signal },
+  );
 
   const controls = document.createElement("div");
   controls.className = "controls";
@@ -110,7 +169,7 @@ export function createToolbar(
       : [list.control, markers.control, exit.control]),
   );
 
-  toolbar.append(trigger, controls);
+  toolbar.append(trigger, controls, launcher);
 
   // Both layers stay rendered so they can cross-fade; `inert` takes the
   // faded one out of the tab order and the accessibility tree.
@@ -129,7 +188,9 @@ export function createToolbar(
 
   return {
     element: toolbar,
+    destroy: () => listening.abort(),
     setActive(active) {
+      closeLauncher();
       const root = toolbar.getRootNode();
       const focusWasInside =
         root instanceof ShadowRoot && toolbar.contains(root.activeElement);

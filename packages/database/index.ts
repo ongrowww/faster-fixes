@@ -5,10 +5,18 @@ import { PrismaClient } from "./generated/prisma/client";
 
 const connectionString = `${process.env.DATABASE_URL}`;
 
-// Neon's serverless driver uses HTTP, avoiding TCP cold-start overhead in production.
-// Fall back to the standard pg adapter for local development.
+const databaseAdapter =
+  process.env.DATABASE_ADAPTER ??
+  (process.env.NODE_ENV === "production" ? "neon" : "postgres");
+
+if (databaseAdapter !== "neon" && databaseAdapter !== "postgres") {
+  throw new Error(
+    `Unsupported DATABASE_ADAPTER: ${databaseAdapter}. Use "neon" or "postgres".`,
+  );
+}
+
 const adapter =
-  process.env.NODE_ENV === "production"
+  databaseAdapter === "neon"
     ? new PrismaNeon({ connectionString })
     : new PrismaPg({ connectionString });
 

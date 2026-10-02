@@ -37,7 +37,7 @@ vi.mock("@workspace/db", async () => {
   return { prisma: widgetApiPrisma };
 });
 
-vi.mock("@/server/storage", () => ({ s3Client: {} }));
+vi.mock("@/server/storage", () => ({ s3Client: {}, storageProvider: "r2" }));
 
 vi.mock("@/server/storage/create-asset", async () => {
   const { createAssetDouble } =
@@ -456,8 +456,103 @@ describe("GET /api/v1/feedback", () => {
         where: {
           projectId: PROJECT_ID,
           pageUrl: `${ALLOWED_ORIGIN}/checkout`,
+          reviewImageId: null,
         },
       }),
+    );
+  });
+});
+
+describe("Review Image feedback scope", () => {
+  const image = { id: "image_1", publicId: "rimg_fixture" };
+  const imageHeaders = { "x-review-image": image.publicId };
+
+  it("returns image pins independently of the browser page URL", async () => {
+    widgetApiPrisma.reviewImage.findFirst.mockResolvedValue(image);
+    widgetApiPrisma.feedback.findMany.mockImplementation(
+      ({
+        where,
+      }: {
+        where: {
+          reviewImageId: string | null;
+          projectId: string;
+          pageUrl?: string;
+        };
+      }) =>
+        where.reviewImageId === image.id &&
+        where.projectId === PROJECT_ID &&
+        !where.pageUrl
+          ? [createdFeedbackRow]
+          : [],
+    );
+    const response = await GET(
+      widgetRequest(
+        `${ROUTE_URL}?url=https://app.test/review/images/rimg_fixture`,
+        { origin: "https://app.test", headers: imageHeaders },
+      ),
+    );
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { feedback: unknown[] };
+    expect(body.feedback).toHaveLength(1);
+  });
+
+  it("excludes image pins from regular website feedback", async () => {
+    widgetApiPrisma.feedback.findMany.mockImplementation(
+      ({
+        where,
+      }: {
+        where: {
+          reviewImageId: string | null;
+          projectId: string;
+          pageUrl?: string;
+        };
+      }) => (where.reviewImageId === null ? [] : [createdFeedbackRow]),
+    );
+    const response = await GET(widgetRequest(ROUTE_URL));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ feedback: [] });
+  });
+
+  it("refuses archived or cross-project image contexts", async () => {
+    const response = await GET(
+      widgetRequest(ROUTE_URL, {
+        origin: "https://app.test",
+        headers: imageHeaders,
+      }),
+    );
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({
+      error: "Invalid feedback context",
+    });
+  });
+
+  it("stores image feedback with a canonical review URL without a Reviewer token", async () => {
+    vi.stubEnv("BASE_URL", "https://app.test");
+    widgetApiPrisma.reviewImage.findFirst.mockResolvedValue(image);
+    widgetApiPrisma.feedback.create.mockImplementation(
+      ({ data }: { data: Record<string, unknown> }) => ({
+        ...createdFeedbackRow,
+        ...data,
+      }),
+    );
+    const response = await POST(
+      widgetRequest(ROUTE_URL, {
+        method: "POST",
+        origin: "https://app.test",
+        headers: imageHeaders,
+        body: feedbackFormData({
+          data: {
+            ...validFeedbackPayload,
+            pageUrl:
+              "https://app.test/review/images/rimg_fixture?reviewer=secret",
+          },
+        }),
+      }),
+    );
+    expect(response.status).toBe(201);
+    const body = (await response.json()) as { pageUrl: string };
+    expect(body.pageUrl).toBe(
+      "https://app.test/review/images/rimg_fixture?project=proj_public_1",
     );
   });
 });

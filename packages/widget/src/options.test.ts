@@ -125,3 +125,41 @@ describe("validateDisplayOptions", () => {
     });
   });
 });
+
+describe("image review options", () => {
+  it("preserves the image scope, explicit session and point target", () => {
+    const annotationTarget = {
+      selector: "[data-review-image]",
+      mode: "point",
+      label: "Place a marker",
+      activateOnMount: true,
+    } as const;
+    expect(
+      validateOptions({
+        projectId: "proj_fixture",
+        reviewImageId: "rimg_fixture",
+        reviewerToken: "reviewer_fixture",
+        annotationTarget,
+      }),
+    ).toMatchObject({
+      valid: true,
+      options: {
+        reviewImageId: "rimg_fixture",
+        reviewerToken: "reviewer_fixture",
+        annotationTarget,
+      },
+    });
+  });
+  it.each([
+    null,
+    {},
+    { mode: "point", selector: "", label: "Marker" },
+    { mode: "element", selector: "img", label: "Marker" },
+  ])("rejects malformed image annotation targets", (annotationTarget) => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(
+      validateOptions({ projectId: "proj_fixture", annotationTarget }),
+    ).toMatchObject({ valid: false, option: "annotationTarget" });
+    vi.unstubAllEnvs();
+  });
+});

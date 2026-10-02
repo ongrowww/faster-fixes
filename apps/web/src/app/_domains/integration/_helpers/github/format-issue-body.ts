@@ -19,6 +19,7 @@ type FeedbackForIssue = {
   diagnosticTrail?: DiagnosticTrail | null;
   projectId: string;
   dashboardUrl: string;
+  reviewImage?: { filename: string; url: string } | null;
 };
 
 export function formatIssueTitle(comment: string): string {
@@ -42,6 +43,12 @@ export function formatIssueBody(feedback: FeedbackForIssue): string {
     .join("\n");
   lines.push(quoted);
   lines.push("");
+
+  if (feedback.reviewImage) {
+    lines.push(
+      `**Review image:** [${feedback.reviewImage.filename}](${feedback.reviewImage.url})`,
+    );
+  }
 
   // Page URL
   const displayUrl = feedback.pageUrl.replace(/^https?:\/\//, "");

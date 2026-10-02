@@ -61,6 +61,29 @@ export function FeedbackDetailPanel({
               {feedback.comment}
             </p>
 
+            {feedback.reviewImage && (
+              <section>
+                <h2 className="mb-2 text-xs font-medium text-muted-foreground">
+                  Review image
+                </h2>
+                <a
+                  href={feedback.reviewImage.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block overflow-hidden rounded-lg border focus-visible:outline-2 focus-visible:outline-offset-2"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- authorized storage query supplies the signed review image URL */}
+                  <img
+                    src={feedback.reviewImage.url}
+                    alt={feedback.reviewImage.filename}
+                    className="max-h-80 w-full object-contain"
+                  />
+                </a>
+                <p className="mt-1 truncate text-xs text-muted-foreground">
+                  {feedback.reviewImage.filename}
+                </p>
+              </section>
+            )}
             {feedback.screenshotUrl ? (
               <ScreenshotDialog src={feedback.screenshotUrl} />
             ) : (

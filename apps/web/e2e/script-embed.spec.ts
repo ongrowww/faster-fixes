@@ -1,3 +1,4 @@
+import { choosePageFeedback } from "./widget-launcher";
 import { expect, test } from "@playwright/test";
 
 import {
@@ -98,6 +99,7 @@ test.describe("script embed", () => {
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Start feedback" }).click();
+    await choosePageFeedback(page);
     await page.locator("h1").click();
     await page.getByPlaceholder("Describe the issue...").fill("Pinned");
     await page.getByRole("button", { name: "Submit" }).click();
@@ -142,6 +144,7 @@ test.describe("script embed", () => {
     );
 
     await page.getByRole("button", { name: "Start feedback" }).click();
+    await choosePageFeedback(page);
     await page.locator("h1").click();
     await page.getByPlaceholder("Describe the issue...").fill("Pinned");
     await page.getByRole("button", { name: "Submit" }).click();
@@ -179,6 +182,7 @@ test.describe("script embed", () => {
     );
 
     await page.getByRole("button", { name: "Start feedback" }).click();
+    await choosePageFeedback(page);
     await page.getByRole("button", { name: "Afficher la liste" }).click();
 
     await expect(page.getByRole("region", { name: "Retours" })).toBeVisible();
@@ -198,6 +202,7 @@ test.describe("script embed", () => {
   test("exposes list parts and keyboard-operable rows", async ({ page }) => {
     await page.goto(FIXTURE_PATH);
     await page.getByRole("button", { name: "Start feedback" }).click();
+    await choosePageFeedback(page);
     await page.locator("h1").click();
     await page.getByPlaceholder("Describe the issue...").fill("Keyboard row");
     await page.getByRole("button", { name: "Submit" }).click();
@@ -206,6 +211,7 @@ test.describe("script embed", () => {
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Start feedback" }).click();
+    await choosePageFeedback(page);
     await page.getByRole("button", { name: "Show feedback list" }).click();
 
     await expect(page.locator('[part="list"]')).toBeVisible();

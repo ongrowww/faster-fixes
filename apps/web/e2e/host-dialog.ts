@@ -1,3 +1,4 @@
+import { choosePageFeedback } from "./widget-launcher";
 import { expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
@@ -103,6 +104,7 @@ export async function submitInsideFocusTrap(
 
   // Found by role only because the host is back in the accessibility tree.
   await start.click();
+  await choosePageFeedback(page);
   const dialog = page.getByRole("dialog", { name: "Host dialog" });
   await dialog.getByRole("heading", { name: "Dialog heading" }).click();
 
@@ -138,6 +140,7 @@ export async function selectOutsideDismissableDrawer(
   await expect(drawer).toBeVisible();
 
   await start.click();
+  await choosePageFeedback(page);
   await page.locator("h1").click();
 
   await expect(page.getByPlaceholder("Describe the issue...")).toBeVisible();

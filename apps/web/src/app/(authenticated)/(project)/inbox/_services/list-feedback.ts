@@ -37,6 +37,7 @@ export async function listFeedback(
       screenshot: {
         select: { id: true, key: true, provider: true, bucket: true },
       },
+      reviewImage: { include: { asset: true } },
       issueLink: {
         select: {
           issueNumber: true,
@@ -89,6 +90,17 @@ export async function listFeedback(
         : null,
       screenshotUrl: f.screenshot
         ? await getSignedAssetUrl(f.screenshot)
+        : null,
+      reviewImage: f.reviewImage
+        ? {
+            id: f.reviewImage.id,
+            publicId: f.reviewImage.publicId,
+            filename: f.reviewImage.asset.filename,
+            mimeType: f.reviewImage.asset.mimeType,
+            width: f.reviewImage.asset.width,
+            height: f.reviewImage.asset.height,
+            url: await getSignedAssetUrl(f.reviewImage.asset),
+          }
         : null,
       metadata: f.metadata as Record<string, unknown> | null,
       issueLink: f.issueLink,

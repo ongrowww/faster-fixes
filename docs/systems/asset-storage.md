@@ -215,3 +215,17 @@ The current flow (client → S3, then tRPC mutation) can leave orphan files if t
 - Storage cost is negligible — a few orphaned images cost fractions of a cent
 - If orphans ever become a concern, add a scheduled cleanup job (Inngest cron) that scans the bucket for keys with no matching Asset row and deletes them after a 24h grace period
 - This is a standard pattern used by most systems with object storage (Stripe, Cloudflare, AWS)
+
+### Review images and self-hosted storage
+
+Reviewer uploads use the `review-image` Better Upload route and the key
+`review-images/{projectId}/{reviewerId}/{uuid}.{extension}`. The browser finalizes a successful
+direct upload through `POST /api/v1/review-images`; the endpoint creates the
+`Asset` and `ReviewImage` rows in one database transaction. Access requires an
+active Reviewer token for the same Project. URLs returned to the gallery,
+dashboard, and tracker integrations are signed and temporary.
+
+`STORAGE_PROVIDER` selects `r2` (the default) or `s3`. The latter uses
+`STORAGE_ENDPOINT`, `STORAGE_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+and optional `STORAGE_FORCE_PATH_STYLE`. The endpoint is an origin without a path.
+The same configured client signs uploads and downloads; buckets can stay private.

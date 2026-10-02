@@ -15,6 +15,7 @@ model Project {
   widgetConfig WidgetConfig?
   reviewers    Reviewer[]
   feedback     Feedback[]
+  reviewImages ReviewImage[]
   gitHubLink   ProjectGitHubLink?
   linearLink   ProjectLinearLink?
   jiraLink     ProjectJiraLink?
@@ -50,7 +51,8 @@ model Reviewer {
   token    String  @unique
   isActive Boolean @default(true)
 
-  feedback Feedback[]
+  feedback     Feedback[]
+  reviewImages ReviewImage[]
 
   @@index([projectId])
   @@map("reviewer")
@@ -90,6 +92,9 @@ model Feedback {
   screenshotId String?
   screenshot   Asset?  @relation("FeedbackScreenshot", fields: [screenshotId], references: [id], onDelete: SetNull)
 
+  reviewImageId String?
+  reviewImage   ReviewImage? @relation(fields: [reviewImageId], references: [id], onDelete: Cascade)
+
   assigneeId String?
   assignee   Member? @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
 
@@ -101,5 +106,30 @@ model Feedback {
   @@index([projectId])
   @@index([reviewerId])
   @@index([assigneeId])
+  @@index([reviewImageId])
   @@map("feedback")
+}
+
+model ReviewImage {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  publicId String @unique
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  assetId String @unique
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  uploadedByReviewerId String?
+  uploadedByReviewer   Reviewer? @relation(fields: [uploadedByReviewerId], references: [id], onDelete: SetNull)
+
+  archivedAt DateTime?
+  feedback   Feedback[]
+
+  @@index([projectId, archivedAt])
+  @@index([uploadedByReviewerId])
+  @@map("review_image")
 }

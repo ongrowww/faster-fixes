@@ -7,6 +7,7 @@ import { prisma } from "@workspace/db";
 
 if (
   process.env.NODE_ENV === "production" &&
+  process.env.NEXT_PUBLIC_IS_CLOUD === "true" &&
   !process.env.STRIPE_WEBHOOK_SIGNING_SECRET
 ) {
   throw new Error("STRIPE_WEBHOOK_SIGNING_SECRET is required in production");

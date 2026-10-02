@@ -1,3 +1,4 @@
+import { choosePageFeedback } from "./widget-launcher";
 import type { FeedbackItem } from "@fasterfixes/core";
 import { expect, test } from "@playwright/test";
 import type { Locator } from "@playwright/test";
@@ -115,6 +116,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await expect(
         page.getByRole("button", { name: "Exit feedback mode" }),
       ).toBeVisible();
@@ -163,6 +165,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.locator("h1").click();
       const comment = page.getByPlaceholder("Describe the issue...");
       await comment.fill("The heading overlaps the logo");
@@ -197,6 +200,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.keyboard.press("Escape");
 
       await expect(
@@ -216,6 +220,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       const target = page.locator("h1");
       await target.click();
       await page
@@ -282,6 +287,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await expect(pin).toBeVisible();
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.getByRole("button", { name: "Hide markers" }).click();
       await expect(pin).toBeHidden();
 
@@ -306,6 +312,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.locator("h1").click();
       await page
         .getByPlaceholder("Describe the issue...")
@@ -318,6 +325,7 @@ for (const fixture of WIDGET_FIXTURES) {
       ).toBeVisible();
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.getByRole("button", { name: "Show feedback list" }).click();
       await expect(
         page.getByRole("button", { name: "Hide feedback list" }),
@@ -351,6 +359,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.getByRole("button", { name: "Show feedback list" }).click();
       await page
         .getByRole("button", { name: /^The heading is misaligned/ })
@@ -422,6 +431,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.getByRole("button", { name: "Show feedback list" }).click();
       await page
         .getByText("The other heading is too small", { exact: true })
@@ -449,6 +459,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.getByRole("button", { name: "Show feedback list" }).click();
 
       const link = page.getByRole("link", { name: "Powered by FasterFixes" });
@@ -467,6 +478,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.getByRole("button", { name: "Show feedback list" }).click();
 
       await expect(page.getByText("No feedback on this page")).toBeVisible();
@@ -592,6 +604,7 @@ for (const fixture of WIDGET_FIXTURES) {
       await page.goto(fixture.path);
 
       await page.getByRole("button", { name: "Start feedback" }).click();
+      await choosePageFeedback(page);
       await page.locator("h1").click();
       await page
         .getByPlaceholder("Describe the issue...")

@@ -176,9 +176,10 @@ export function createPinLayer(
   window.addEventListener(
     "scroll",
     () => {
+      update();
       if (active) highlightActive();
     },
-    { passive: true, signal: listening.signal },
+    { passive: true, capture: true, signal: listening.signal },
   );
   // Dialog portals and client-rendered sections come and go as body children.
   const observer = new MutationObserver(update);

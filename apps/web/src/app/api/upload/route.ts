@@ -1,3 +1,7 @@
+import { findProjectByPublicId } from "@/app/_domains/project/_services/find-project-by-public-id";
+import { findReviewerByToken } from "@/app/_domains/project/_services/find-reviewer-by-token";
+import { checkRateLimit } from "@/server/rate-limit/check-rate-limit";
+import crypto from "crypto";
 import { auth } from "@/server/auth";
 import { s3Client } from "@/server/storage";
 import { requireEnv } from "@/utils/environment/require-env";
@@ -38,6 +42,31 @@ const routes: Router["routes"] = {
       return {
         objectInfo: {
           key: `organization-logos/${clientMetadata.organizationId}/${Date.now()}.${extension}`,
+        },
+      };
+    },
+  }),
+  "review-image": route({
+    fileTypes: ["image/png", "image/jpeg", "image/webp"],
+    maxFileSize: 10 * 1024 * 1024,
+    clientMetadataSchema: z.object({ projectId: z.string() }),
+    onBeforeUpload: async ({ req, file, clientMetadata }) => {
+      const project = await findProjectByPublicId(clientMetadata.projectId);
+      if (!project) throw new RejectUpload("Unknown project.");
+      const reviewer = await findReviewerByToken(
+        req.headers.get("x-reviewer-token"),
+        project.id,
+      );
+      if (!reviewer) throw new RejectUpload("Invalid reviewer link.");
+      const { allowed } = await checkRateLimit(project.id, "submit");
+      if (!allowed) {
+        throw new RejectUpload("Too many uploads. Try again later.");
+      }
+      const extension =
+        file.type === "image/jpeg" ? "jpg" : (file.type.split("/")[1] ?? "png");
+      return {
+        objectInfo: {
+          key: `review-images/${project.id}/${reviewer.id}/${crypto.randomUUID()}.${extension}`,
         },
       };
     },

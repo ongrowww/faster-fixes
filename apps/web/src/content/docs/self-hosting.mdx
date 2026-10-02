@@ -15,7 +15,7 @@ You will need:
 - A **PostgreSQL database**: Neon, Supabase, Railway, or self-managed.
 - An **Inngest** account for background jobs (screenshot processing, GitHub sync, etc.). The free tier is enough to get started.
 - An **S3-compatible object store** for screenshots: Cloudflare R2 is the recommended default; AWS S3 works identically.
-- A **Resend** or **Plunk** account for transactional email: required to send sign-up confirmations and password resets.
+- An **SMTP server**, **Resend**, or **Plunk** account for transactional email: required to send sign-up confirmations and password resets.
 - (Optional) A **GitHub App** if you want the GitHub integration.
 
 Stripe is not needed for self-hosted installs. The billing code only runs on the hosted cloud version.
@@ -41,12 +41,16 @@ Copy `apps/web/.env.example` and fill in the values. The minimum set for a self-
 DOMAIN_NAME="your-domain.com"
 BASE_URL="https://your-domain.com"
 DATABASE_URL="postgresql://user:password@host:5432/db?schema=public"
+DATABASE_ADAPTER="postgres"
 
 # Auth
 BETTER_AUTH_SECRET="<generate with: openssl rand -base64 32>"
 BETTER_AUTH_URL="https://your-domain.com"
+REGISTRATION_ENABLED="true"
+EMAIL_VERIFICATION_REQUIRED="true"
 
 # Storage (Cloudflare R2)
+STORAGE_PROVIDER="r2"
 STORAGE_REGION="auto"
 STORAGE_BUCKET_NAME="your-bucket"
 NEXT_PUBLIC_STORAGE_BASE_URL="https://<account-id>.r2.cloudflarestorage.com/your-bucket"
@@ -59,7 +63,8 @@ INNGEST_EVENT_KEY="..."
 INNGEST_SIGNING_KEY="..."
 
 # Transactional email: required for sign-up confirmations and password resets.
-# Use either Resend or Plunk.
+# Choose resend, plunk, or smtp.
+MAILER_PROVIDER="resend"
 RESEND_API_KEY="re_..."
 # PLUNK_SECRET_KEY="sk_..."
 
@@ -72,7 +77,33 @@ NEXT_PUBLIC_IS_CLOUD="false"
 
 GitHub App variables are optional. Skip them unless you need the GitHub integration. Leave the Stripe variables unset. Billing is cloud-only and self-hosted installs don't run it.
 
-If you prefer AWS S3 over Cloudflare R2, use `AWS_ACCESS_KEY_ID`, `AWS_BUCKET_NAME`, and `AWS_SECRET_ACCESS_KEY` instead of the R2 variables.
+For SMTP, set `MAILER_PROVIDER="smtp"` and configure `SMTP_HOST`, `SMTP_PORT`
+(default `587`), `SMTP_SECURE` (`true` for implicit TLS, normally port `465`),
+`SMTP_USER`, `SMTP_PASSWORD`, and `SMTP_FROM`. Port `587` uses STARTTLS when
+supported by the server. SMTP sends transactional emails; it does not support
+newsletter contact management.
+
+For AWS S3 or another S3-compatible provider, configure the generic client:
+
+```bash
+STORAGE_PROVIDER="s3"
+STORAGE_ENDPOINT="https://s3.example.com"
+STORAGE_REGION="us-east-1"
+STORAGE_BUCKET_NAME="your-bucket"
+STORAGE_FORCE_PATH_STYLE="false"
+AWS_ACCESS_KEY_ID="..."
+AWS_SECRET_ACCESS_KEY="..."
+```
+
+`STORAGE_ENDPOINT` must be an HTTP(S) origin, without credentials, a path, or
+query parameters. Set `STORAGE_FORCE_PATH_STYLE="true"` for providers that
+require bucket names in request paths. Asset access uses temporary signed URLs;
+a public bucket is unnecessary.
+
+Set `GITHUB_APP_NAME`, `GITHUB_APP_ID`, `GITHUB_PRIVATE_KEY`, and
+`GITHUB_WEBHOOK_SECRET` only when enabling the GitHub integration. The application
+loads without GitHub credentials; the dashboard leaves the connection button
+unavailable until an App name is configured.
 
 ## 3. Provision external services
 
@@ -82,7 +113,7 @@ Any Postgres 14+ works. Create a database and put the connection string in `DATA
 
 ### Cloudflare R2
 
-Create a bucket and an API token scoped to that bucket. Copy the account ID, access key, and secret into the R2 variables above. Make the bucket public (or front it with a Worker) so screenshots are readable by reviewers.
+Create a bucket and an API token scoped to that bucket. Copy the account ID, access key, and secret into the R2 variables above. Keep the bucket private. The application creates temporary signed URLs for authorized asset access.
 
 ### Inngest
 
@@ -102,8 +133,13 @@ This applies all Prisma migrations and generates the client. For subsequent depl
 
 After the first deploy:
 
-1. Visit `https://your-domain.com/login` and create the first account (becomes the admin).
-2. Create a project, copy the widget API key, and test the widget in any page.
-3. Check Inngest's dashboard to confirm events are being received.
+1. With `REGISTRATION_ENABLED="true"`, visit `https://your-domain.com/signup` and create the first account.
+2. Set `REGISTRATION_ENABLED="false"` and restart the web container to close registration. Existing users can still sign in.
+3. Create a Project, copy its Project public ID, issue a Reviewer token, and test the Widget on an allowed origin.
+4. Check Inngest's dashboard to confirm events are being received.
+
+Email verification is required by default. If your deployment explicitly sets
+`EMAIL_VERIFICATION_REQUIRED="false"`, sign-ups do not send a verification email.
+Password resets still require a working mailer.
 
 Your instance is now ready. Point your clients' widgets at `NEXT_PUBLIC_FF_API_ORIGIN` and connect your AI coding agent via the [MCP server](/docs/mcp/setup).

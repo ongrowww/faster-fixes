@@ -1,5 +1,9 @@
 import { auth } from "@/server/auth";
-import { ConflictError, DomainError } from "@/server/errors/domain-errors";
+import {
+  ConflictError,
+  DomainError,
+  ForbiddenError,
+} from "@/server/errors/domain-errors";
 
 export async function registerUser({
   email,
@@ -8,6 +12,10 @@ export async function registerUser({
   email: string;
   password: string;
 }) {
+  if (process.env.REGISTRATION_ENABLED !== "true") {
+    throw new ForbiddenError("Registration is disabled for this installation.");
+  }
+
   try {
     const localPart = email.split("@")[0];
     // An address starting with "@" has an empty local part, so the whole address becomes the name.

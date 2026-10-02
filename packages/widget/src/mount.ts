@@ -262,15 +262,33 @@ export function mountWidget({
     }
   }
 
-  const annotation = createAnnotationMode(document, overlay, {
-    onSelect(element, click) {
-      setMode("selected");
-      // Started before the popover opens; the host is excluded from the capture either way.
-      selection = { element, click, screenshot: captureViewportScreenshot() };
-      popover.open(element);
+  const annotation = createAnnotationMode(
+    document,
+    overlay,
+    {
+      onSelect(element, click) {
+        setMode("selected");
+        // Started before the popover opens; the host is excluded from the capture either way.
+        selection = { element, click, screenshot: captureViewportScreenshot() };
+        popover.open(
+          options.annotationTarget?.mode === "point"
+            ? {
+                contextElement: element,
+                getBoundingClientRect: () =>
+                  DOMRect.fromRect({
+                    x: click.x,
+                    y: click.y,
+                    width: 0,
+                    height: 0,
+                  }),
+              }
+            : element,
+        );
+      },
+      onCancel: () => setMode("idle"),
     },
-    onCancel: () => setMode("idle"),
-  });
+    options.annotationTarget,
+  );
 
   const popover = createCommentPopover(document, shadow, options.labels, {
     async onSubmit(comment) {
@@ -282,6 +300,7 @@ export function mountWidget({
           element: selection.element,
           click: selection.click,
           diagnosticTrail: recorder?.snapshot(),
+          selector: options.annotationTarget?.selector,
         }),
         reviewerToken,
       );
@@ -291,7 +310,11 @@ export function mountWidget({
       void loadFeedback();
     },
     onClose() {
-      if (mode === "selected") setMode("idle");
+      if (mode === "selected") {
+        setMode(
+          options.annotationTarget?.activateOnMount ? "annotating" : "idle",
+        );
+      }
     },
   });
 
@@ -341,6 +364,7 @@ export function mountWidget({
   let destroyed = false;
   document.body.appendChild(host);
   void loadFeedback();
+  if (options.annotationTarget?.activateOnMount) setMode("annotating");
 
   function togglePins() {
     const showPins = !state.current.showPins;
@@ -398,6 +422,7 @@ export function mountWidget({
       stopWatchingLocation();
       pendingTimers.forEach(clearTimeout);
       pinLayer.destroy();
+      toolbar.destroy();
       unguardHost();
       host.remove();
     },

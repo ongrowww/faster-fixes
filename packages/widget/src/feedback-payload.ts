@@ -17,6 +17,7 @@ type FeedbackPayloadInput = {
   element: Element;
   click: PinPoint;
   diagnosticTrail: DiagnosticTrail | undefined;
+  selector?: string;
 };
 
 /** The create request body for a comment on `element`, read at submit time. */
@@ -25,6 +26,7 @@ export function buildFeedbackPayload({
   element,
   click,
   diagnosticTrail,
+  selector,
 }: FeedbackPayloadInput): CreateFeedbackData {
   const selectors = generateSelectors(element);
   const metadata: Record<string, unknown> = {
@@ -44,7 +46,7 @@ export function buildFeedbackPayload({
   return {
     comment,
     pageUrl: window.location.href,
-    selector: selectors.best,
+    selector: selector ?? selectors.best,
     clickX: click.x,
     clickY: click.y,
     metadata,

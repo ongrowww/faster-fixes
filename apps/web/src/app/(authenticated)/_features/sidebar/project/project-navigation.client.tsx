@@ -12,7 +12,7 @@ import {
   useSidebar,
 } from "@workspace/ui/components/sidebar";
 import { Skeleton } from "@workspace/ui/components/skeleton";
-import { Settings2, SquareKanban, Users } from "lucide-react";
+import { ImageIcon, Settings2, SquareKanban, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { InboxNewCountBadge } from "./inbox-new-count-badge.client";
@@ -25,6 +25,7 @@ export function ProjectNavigation() {
 
   const items = [
     { label: "Task board", href: "/inbox" as const, icon: SquareKanban },
+    { label: "Images", href: "/images" as const, icon: ImageIcon },
     { label: "Reviewers", href: "/reviewers" as const, icon: Users },
     { label: "Settings", href: "/settings" as const, icon: Settings2 },
   ];

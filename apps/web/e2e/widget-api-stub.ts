@@ -11,6 +11,7 @@ export const WIDGET_PROJECT_ID = "proj_e2e";
 const ENABLED_CONFIG: WidgetConfig = { enabled: true, branding: false };
 
 type StubOptions = {
+  apiOrigin?: string;
   config?: WidgetConfig;
   feedback?: FeedbackItem[];
 };
@@ -80,13 +81,17 @@ function toCreatedItem(data: CreateFeedbackData | null): FeedbackItem {
  */
 export async function stubWidgetApi(
   page: Page,
-  { config = ENABLED_CONFIG, feedback = [] }: StubOptions = {},
+  {
+    config = ENABLED_CONFIG,
+    feedback = [],
+    apiOrigin = WIDGET_API_ORIGIN,
+  }: StubOptions = {},
 ): Promise<WidgetApiStub> {
   const requests: StubbedRequest[] = [];
   let items = [...feedback];
   const createdIds: string[] = [];
 
-  await page.route(`${WIDGET_API_ORIGIN}/**`, async (route) => {
+  await page.route(`${apiOrigin}/api/**`, async (route) => {
     const request = route.request();
     const method = request.method();
     const { pathname } = new URL(request.url());

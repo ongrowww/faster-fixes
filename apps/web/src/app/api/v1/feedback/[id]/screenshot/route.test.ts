@@ -33,7 +33,7 @@ vi.mock("@workspace/db", async () => {
   return { prisma: widgetApiPrisma };
 });
 
-vi.mock("@/server/storage", () => ({ s3Client: {} }));
+vi.mock("@/server/storage", () => ({ s3Client: {}, storageProvider: "r2" }));
 
 vi.mock("@/server/storage/create-asset", async () => {
   const { createAssetDouble } =
@@ -168,7 +168,7 @@ describe("PUT /api/v1/feedback/:id/screenshot", () => {
       error: "Feedback not found",
     });
     expect(widgetApiPrisma.feedback.findFirst).toHaveBeenCalledWith({
-      where: { id: FEEDBACK_ID, projectId: PROJECT_ID },
+      where: { id: FEEDBACK_ID, projectId: PROJECT_ID, reviewImageId: null },
     });
     expect(putObjectDouble).not.toHaveBeenCalled();
   });
@@ -348,5 +348,28 @@ describe("PUT /api/v1/feedback/:id/screenshot", () => {
     );
 
     expect(response.status).toBe(200);
+  });
+});
+
+describe("Review Image screenshot scope", () => {
+  it("refuses attaching a screenshot to a pin belonging to another image", async () => {
+    widgetApiPrisma.reviewImage.findFirst.mockResolvedValue({
+      id: "image_2",
+      publicId: "rimg_other",
+    });
+    widgetApiPrisma.feedback.findFirst.mockImplementation(
+      ({ where }: { where: { reviewImageId: string | null } }) =>
+        where.reviewImageId === "image_1"
+          ? feedbackRow({ reviewImageId: "image_1" })
+          : null,
+    );
+    const response = await PUT(
+      attachRequest(screenshotForm(), {
+        headers: { "x-review-image": "rimg_other" },
+      }),
+      routeParams,
+    );
+    expect(response.status).toBe(404);
+    expect(putObjectDouble).not.toHaveBeenCalled();
   });
 });

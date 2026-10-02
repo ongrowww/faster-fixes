@@ -1,3 +1,4 @@
+import { getAppUrl } from "@/utils/url/get-app-url";
 import { inngest } from "@/server/inngest";
 import { buildEvent, feedbackCreatedEvent } from "@/server/inngest/events";
 import { getSignedAssetUrl } from "@/server/storage/get-signed-asset-url";
@@ -7,6 +8,8 @@ import type { CreateFeedbackInput } from "./create-feedback.schema";
 type CreateFeedbackServiceInput = {
   projectId: string;
   reviewerId: string;
+  projectPublicId?: string;
+  reviewImage?: { id: string; publicId: string } | null;
   /** Set only when the widget sent a screenshot and its upload succeeded. */
   screenshotId?: string;
   data: CreateFeedbackInput;
@@ -22,6 +25,8 @@ export async function createFeedback({
   projectId,
   reviewerId,
   screenshotId,
+  projectPublicId,
+  reviewImage,
   data,
 }: CreateFeedbackServiceInput) {
   const feedback = await prisma.feedback.create({
@@ -29,7 +34,10 @@ export async function createFeedback({
       projectId,
       reviewerId,
       comment: data.comment,
-      pageUrl: data.pageUrl,
+      pageUrl: reviewImage
+        ? `${getAppUrl().replace(/\/$/, "")}/review/images/${reviewImage.publicId}?project=${encodeURIComponent(projectPublicId ?? projectId)}`
+        : data.pageUrl,
+      reviewImageId: reviewImage?.id,
       clickX: data.clickX,
       clickY: data.clickY,
       selector: data.selector,

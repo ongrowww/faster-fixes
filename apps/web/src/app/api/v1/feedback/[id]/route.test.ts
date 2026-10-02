@@ -136,7 +136,7 @@ describe("PUT /api/v1/feedback/:id", () => {
       error: "Feedback not found",
     });
     expect(widgetApiPrisma.feedback.findFirst).toHaveBeenCalledWith({
-      where: { id: FEEDBACK_ID, projectId: PROJECT_ID },
+      where: { id: FEEDBACK_ID, projectId: PROJECT_ID, reviewImageId: null },
     });
     expect(widgetApiPrisma.feedback.update).not.toHaveBeenCalled();
   });
@@ -319,5 +319,69 @@ describe("DELETE /api/v1/feedback/:id", () => {
 
     expect(response.status).toBe(204);
     expect(widgetApiPrisma.feedback.delete).toHaveBeenCalled();
+  });
+});
+
+describe("Review Image feedback mutations", () => {
+  beforeEach(() => {
+    widgetApiPrisma.reviewImage.findFirst.mockResolvedValue({
+      id: "image_1",
+      publicId: "rimg_fixture",
+    });
+    widgetApiPrisma.feedback.findFirst.mockImplementation(
+      ({
+        where,
+      }: {
+        where: { id: string; projectId: string; reviewImageId: string | null };
+      }) =>
+        where.id === FEEDBACK_ID &&
+        where.projectId === PROJECT_ID &&
+        where.reviewImageId === "image_1"
+          ? feedbackRow({ reviewImageId: "image_1" })
+          : null,
+    );
+  });
+
+  it("refuses editing an image pin through an ordinary website context", async () => {
+    const response = await PUT(editRequest(), routeParams);
+    expect(response.status).toBe(404);
+    expect(widgetApiPrisma.feedback.update).not.toHaveBeenCalled();
+  });
+
+  it("refuses deleting a pin in another image context", async () => {
+    widgetApiPrisma.reviewImage.findFirst.mockResolvedValue({
+      id: "image_2",
+      publicId: "rimg_other",
+    });
+    const response = await DELETE(
+      widgetRequest(ROUTE_URL, {
+        method: "DELETE",
+        headers: { "x-review-image": "rimg_other" },
+      }),
+      routeParams,
+    );
+    expect(response.status).toBe(404);
+    expect(widgetApiPrisma.feedback.delete).not.toHaveBeenCalled();
+  });
+
+  it("edits an image pin for an active Reviewer in that image's project", async () => {
+    const response = await PUT(
+      widgetRequest(ROUTE_URL, {
+        method: "PUT",
+        body: JSON.stringify({ comment: NEW_COMMENT }),
+        origin: "https://app.test",
+        headers: {
+          "x-review-image": "rimg_fixture",
+          "content-type": "application/json",
+        },
+      }),
+      routeParams,
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      id: FEEDBACK_ID,
+      comment: NEW_COMMENT,
+      updatedAt: UPDATED_AT.toISOString(),
+    });
   });
 });

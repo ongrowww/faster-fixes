@@ -46,6 +46,9 @@ export type Labels = {
   hideResolved: string;
   feedbackListTitle: string;
   emptyList: string;
+  chooseFeedbackType: string;
+  commentOnPage: string;
+  reviewImages: string;
   startFeedback: string;
   exitFeedbackMode: string;
   showFeedbackList: string;
@@ -74,6 +77,9 @@ export const DEFAULT_LABELS: Labels = {
   hideResolved: "Hide resolved",
   feedbackListTitle: "Feedback",
   emptyList: "No feedback on this page",
+  chooseFeedbackType: "Choose feedback type",
+  commentOnPage: "Comment on this page",
+  reviewImages: "Review images",
   startFeedback: "Start feedback",
   exitFeedbackMode: "Exit feedback mode",
   showFeedbackList: "Show feedback list",

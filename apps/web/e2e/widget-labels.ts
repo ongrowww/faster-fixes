@@ -1,3 +1,4 @@
+import { choosePageFeedback } from "./widget-launcher";
 import { DEFAULT_LABELS } from "@fasterfixes/core";
 import type { Labels } from "@fasterfixes/core";
 import { expect } from "@playwright/test";
@@ -24,6 +25,9 @@ export const LABEL_OVERRIDES: TextLabels = {
   hideResolved: "Masquer les résolus",
   feedbackListTitle: "Retours",
   emptyList: "Aucun retour sur cette page",
+  chooseFeedbackType: "Choisir un retour",
+  commentOnPage: "Commenter cette page",
+  reviewImages: "Examiner des images",
   startFeedback: "Commencer un retour",
   exitFeedbackMode: "Quitter le mode retour",
   showFeedbackList: "Afficher la liste",
@@ -81,6 +85,7 @@ export async function expectLabelsEverywhere(page: Page) {
   await expectNoDefaultLabel(page);
 
   await start.click();
+  await choosePageFeedback(page, LABEL_OVERRIDES.commentOnPage);
   await expect(
     page.getByRole("button", { name: LABEL_OVERRIDES.exitFeedbackMode }),
   ).toBeVisible();
@@ -103,6 +108,7 @@ export async function expectLabelsEverywhere(page: Page) {
 
   // A submit ends feedback mode once the popover has faded out.
   await start.click();
+  await choosePageFeedback(page, LABEL_OVERRIDES.commentOnPage);
   await page.getByRole("button", { name: LABEL_OVERRIDES.hideMarkers }).click();
   await expect(
     page.getByRole("button", { name: LABEL_OVERRIDES.showMarkers }),

@@ -16,7 +16,11 @@ import { AlertTriangle } from "lucide-react";
 import { GitHubConnected } from "./github-connected.client";
 import { GitHubNotConnected } from "./github-not-connected.client";
 
-export function GitHubIntegrationSection() {
+type GitHubIntegrationSectionProps = { githubAppName?: string };
+
+export function GitHubIntegrationSection({
+  githubAppName,
+}: GitHubIntegrationSectionProps) {
   const trpc = useTRPC();
   const { data: activeOrg } = useActiveOrganization();
 
@@ -43,7 +47,7 @@ export function GitHubIntegrationSection() {
         </EmptyHeader>
       </Empty>
     ),
-    Empty: <GitHubNotConnected />,
+    Empty: <GitHubNotConnected githubAppName={githubAppName} />,
     Success: ({ data: installation }) => (
       <GitHubConnected installation={installation} />
     ),

@@ -12,14 +12,17 @@ import { DEFAULT_API_ORIGIN } from "./constants.js";
 export type ClientOptions = {
   apiKey: string;
   apiOrigin?: string;
+  reviewImageId?: string;
 };
 
 export class FasterFixesClient implements FeedbackClient {
   private apiKey: string;
   private apiOrigin: string;
+  private reviewImageId?: string;
 
   constructor(options: ClientOptions) {
     this.apiKey = options.apiKey;
+    this.reviewImageId = options.reviewImageId;
     this.apiOrigin = (options.apiOrigin ?? DEFAULT_API_ORIGIN).replace(
       /\/$/,
       "",
@@ -33,6 +36,7 @@ export class FasterFixesClient implements FeedbackClient {
     if (reviewerToken) {
       h["X-Reviewer-Token"] = reviewerToken;
     }
+    if (this.reviewImageId) h["X-Review-Image"] = this.reviewImageId;
     return h;
   }
 

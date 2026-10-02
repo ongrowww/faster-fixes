@@ -4,12 +4,11 @@ import { requireEnv } from "@/utils/environment/require-env";
 
 import { PlunkMailer } from "./plunk";
 import { ResendMailer } from "./resend";
+import { SmtpMailer } from "./smtp";
 import type { Mailer } from "./types";
 
-type MailerProvider = "plunk" | "resend";
-
 export function createMailer(): Mailer {
-  const provider = "resend" as MailerProvider;
+  const provider = process.env.MAILER_PROVIDER ?? "resend";
 
   switch (provider) {
     case "plunk":
@@ -20,6 +19,8 @@ export function createMailer(): Mailer {
       return new ResendMailer(
         requireEnv("RESEND_API_KEY", process.env.RESEND_API_KEY),
       );
+    case "smtp":
+      return new SmtpMailer();
     default:
       throw new Error(`Unsupported mailer provider: ${String(provider)}`);
   }

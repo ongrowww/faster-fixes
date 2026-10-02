@@ -4,6 +4,7 @@ import { getProjectFeedback } from "./get-project-feedback";
 type GetFeedbackAwaitingScreenshotInput = {
   feedbackId: string;
   projectId: string;
+  reviewImageId?: string | null;
 };
 
 /**
@@ -17,8 +18,13 @@ type GetFeedbackAwaitingScreenshotInput = {
 export async function getFeedbackAwaitingScreenshot({
   feedbackId,
   projectId,
+  reviewImageId = null,
 }: GetFeedbackAwaitingScreenshotInput) {
-  const feedback = await getProjectFeedback({ feedbackId, projectId });
+  const feedback = await getProjectFeedback({
+    feedbackId,
+    projectId,
+    reviewImageId,
+  });
 
   if (feedback.screenshotId) {
     // No period: this copy is the published widget API contract.

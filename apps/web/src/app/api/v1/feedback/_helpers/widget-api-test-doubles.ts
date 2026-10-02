@@ -75,6 +75,7 @@ export function subscriptionRow(overrides: Record<string, unknown> = {}) {
 export const widgetApiPrisma = {
   project: { findFirst: vi.fn() },
   reviewer: { findFirst: vi.fn() },
+  reviewImage: { findFirst: vi.fn() },
   subscription: { findFirst: vi.fn() },
   feedback: {
     findFirst: vi.fn(),
@@ -105,6 +106,7 @@ export function resetWidgetApiDoubles() {
   widgetApiPrisma.reviewer.findFirst.mockResolvedValue(reviewerRow());
   widgetApiPrisma.subscription.findFirst.mockResolvedValue(null);
   widgetApiPrisma.feedback.count.mockResolvedValue(0);
+  widgetApiPrisma.reviewImage.findFirst.mockResolvedValue(null);
   widgetApiPrisma.feedback.findFirst.mockResolvedValue(feedbackRow());
   widgetApiPrisma.feedback.findMany.mockResolvedValue([]);
   allowRateLimit();

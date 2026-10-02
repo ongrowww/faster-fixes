@@ -3,6 +3,7 @@ import { prisma } from "@workspace/db";
 
 type ListFeedbacksInput = {
   projectId: string;
+  reviewImageId?: string | null;
   /** The page the widget is open on. Omitted → the whole Project. */
   pageUrl?: string;
 };
@@ -16,10 +17,12 @@ type ListFeedbacksInput = {
 export async function listFeedbacks({
   projectId,
   pageUrl,
+  reviewImageId = null,
 }: ListFeedbacksInput) {
   const feedbackList = await prisma.feedback.findMany({
     where: {
       projectId,
+      reviewImageId,
       ...(pageUrl ? { pageUrl } : {}),
     },
     orderBy: { createdAt: "desc" },

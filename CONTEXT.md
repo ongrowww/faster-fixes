@@ -14,6 +14,10 @@ _Avoid_: Issue (reserved for tracker-side artifacts), Ticket, Bug report.
 The end-user of the customer's site who submitted a Feedback through the widget.
 _Avoid_: Reporter, Submitter, User.
 
+**Review Image**:
+An image uploaded by a Reviewer for visual review. A Review Image belongs to one Project and contains regular Feedback pinned to locations on the image.
+_Avoid_: Attachment (too broad), Screenshot (reserved for a Feedback capture).
+
 **Project**:
 A Faster Fixes container scoped to one website (one widget install). Holds Feedback, settings, and at most one **Project link** per **Integration**.
 _Avoid_: Site, App, Workspace.
@@ -147,6 +151,8 @@ The fixed-size in-memory store the Widget fills from page load; oldest entries d
 - A **Diagnostic Trail** contains many **Console Entries** and many **Network Entries**
 - The **Widget** maintains one **Ring Buffer** per page session; submitting Feedback snapshots it into a **Diagnostic Trail**
 - An **Integration** is either a **Tracker** or a **Notification channel**
+- A **Project** has many **Review Images**; each Review Image references one **Asset**
+- A **Feedback** belongs either to a website page or to one **Review Image**
 - A **Project** has zero or one **Project link** per **Integration**
 - A **Feedback** has zero or one **Issue link** per **Tracker**
 - A **Reviewer** submits **Feedback** through the **Widget**; Reviewers are not authenticated app users

@@ -4,6 +4,7 @@ import { LinearIcon } from "@workspace/ui/components/icons/linear-icon";
 import { McpIcon } from "@workspace/ui/components/icons/mcp-icon";
 import { SlackIcon } from "@workspace/ui/components/icons/slack-icon";
 import Link from "next/link";
+import { connection } from "next/server";
 import { DashboardSection } from "@/app/(authenticated)/_features/dashboard/dashboard-section";
 import { DashboardPageContent } from "@/app/_components/dashboard/dashboard-page-content";
 import { AgentTokensSection } from "./_features/agent-tokens/agent-tokens-section.client";
@@ -12,7 +13,9 @@ import { JiraIntegrationSection } from "./_features/jira/jira-integration-sectio
 import { LinearIntegrationSection } from "./_features/linear/linear-integration-section.client";
 import { SlackIntegrationSection } from "./_features/slack/slack-integration-section.client";
 
-export default function IntegrationsPage() {
+export default async function IntegrationsPage() {
+  await connection();
+  const githubAppName = process.env.GITHUB_APP_NAME;
   return (
     <DashboardPageContent breadcrumbs={[{ label: "Integrations" }]}>
       <div className="flex flex-col gap-12">
@@ -27,7 +30,7 @@ export default function IntegrationsPage() {
           cardTitle="GitHub integration"
           cardClassName="lg:max-w-lg"
         >
-          <GitHubIntegrationSection />
+          <GitHubIntegrationSection githubAppName={githubAppName} />
         </DashboardSection>
 
         <DashboardSection

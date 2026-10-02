@@ -4,19 +4,21 @@ import { prisma } from "@workspace/db";
 type GetProjectFeedbackInput = {
   feedbackId: string;
   projectId: string;
+  reviewImageId?: string | null;
 };
 
 /**
  * One Feedback of a Project, read before the widget edits or deletes it. The
- * Project scope is the whole access rule: any active Reviewer of the Project
- * may act on any of its Feedback, not only on the ones they submitted.
+ * An active Reviewer may act on any Feedback in the authorized page or Review
+ * Image context of the Project, not only the Feedback they submitted.
  */
 export async function getProjectFeedback({
   feedbackId,
   projectId,
+  reviewImageId = null,
 }: GetProjectFeedbackInput) {
   const feedback = await prisma.feedback.findFirst({
-    where: { id: feedbackId, projectId },
+    where: { id: feedbackId, projectId, reviewImageId },
   });
 
   if (!feedback) {

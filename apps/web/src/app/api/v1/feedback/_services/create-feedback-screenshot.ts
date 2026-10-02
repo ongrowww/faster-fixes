@@ -1,4 +1,4 @@
-import { s3Client } from "@/server/storage";
+import { s3Client, storageProvider } from "@/server/storage";
 import { createAsset } from "@/server/storage/create-asset";
 import { requireEnv } from "@/utils/environment/require-env";
 import { putObject } from "@better-upload/server/helpers";
@@ -39,7 +39,7 @@ export async function createFeedbackScreenshot({
   const asset = await createAsset({
     key,
     bucket,
-    provider: "r2",
+    provider: storageProvider,
     filename: `screenshot.${ext}`,
     mimeType: contentType,
     size: body.length,

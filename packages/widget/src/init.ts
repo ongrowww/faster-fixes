@@ -13,13 +13,14 @@ function start(input: unknown): Widget {
   const result = validateOptions(input);
   if (!result.valid) return createInertWidget();
 
-  const reviewerToken = resolveReviewerToken();
+  const reviewerToken = result.options.reviewerToken ?? resolveReviewerToken();
   if (!reviewerToken) return createInertWidget();
 
   const { projectId, ...options } = result.options;
   const client = new FasterFixesClient({
     apiKey: projectId,
     apiOrigin: options.apiOrigin,
+    reviewImageId: options.reviewImageId,
   });
   const deferred = createDeferredWidget();
 
@@ -29,7 +30,16 @@ function start(input: unknown): Widget {
       // A later `init` or `destroy` may have landed while the request ran.
       if (deferred.destroyed) return;
       deferred.attach(
-        createWidget({ ...options, client, reviewerToken, config }),
+        createWidget({
+          ...options,
+          reviewImagesUrl: options.annotationTarget
+            ? undefined
+            : (options.reviewImagesUrl ??
+              `${options.apiOrigin.replace(/\/$/, "")}/review/images?project=${encodeURIComponent(projectId)}#ff_token=${encodeURIComponent(reviewerToken)}`),
+          client,
+          reviewerToken,
+          config,
+        }),
       );
     })
     .catch(() => {

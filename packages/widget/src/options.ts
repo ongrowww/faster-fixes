@@ -9,7 +9,21 @@ import type { Labels, WidgetPosition } from "@fasterfixes/core";
 import { isDevelopment } from "./environment.js";
 import { resolveLabels } from "./labels.js";
 
-export type WidgetOptions = {
+export type AnnotationTarget = {
+  selector: string;
+  mode: "point";
+  label: string;
+  activateOnMount?: boolean;
+};
+
+export type ReviewOptions = {
+  reviewImageId?: string;
+  reviewerToken?: string;
+  annotationTarget?: AnnotationTarget;
+  reviewImagesUrl?: string;
+};
+
+export type WidgetOptions = ReviewOptions & {
   /** The Project public ID, `proj_...`. */
   projectId: string;
   apiOrigin?: string;
@@ -20,9 +34,12 @@ export type WidgetOptions = {
   captureDiagnostics?: boolean;
 };
 
-export type ResolvedWidgetOptions = Required<Omit<WidgetOptions, "labels">> & {
-  labels: Labels;
-};
+export type ResolvedWidgetOptions = Required<
+  Omit<WidgetOptions, "labels" | keyof ReviewOptions>
+> &
+  ReviewOptions & {
+    labels: Labels;
+  };
 
 export type OptionsValidationResult =
   | { valid: true; options: ResolvedWidgetOptions }
@@ -53,7 +70,22 @@ function checkProjectId(input: Record<string, unknown>) {
 }
 
 function checkDisplayOptions(input: Record<string, unknown>) {
-  const { position, labels } = input;
+  const { position, labels, annotationTarget } = input;
+  if (annotationTarget !== undefined) {
+    const target = toFields(annotationTarget);
+    if (
+      target.mode !== "point" ||
+      typeof target.selector !== "string" ||
+      target.selector.trim() === "" ||
+      typeof target.label !== "string" ||
+      target.label.trim() === ""
+    ) {
+      return {
+        option: "annotationTarget",
+        message: "`annotationTarget` needs a point selector and label.",
+      } as const;
+    }
+  }
   if (position !== undefined && !isPosition(position)) {
     return {
       option: "position",
@@ -93,6 +125,14 @@ function resolveDisplayOptions(
     position: options.position ?? DEFAULT_WIDGET_POSITION,
     labels: resolveLabels(options.labels),
     captureDiagnostics: options.captureDiagnostics ?? true,
+    ...(options.annotationTarget
+      ? { annotationTarget: options.annotationTarget }
+      : {}),
+    ...(options.reviewerToken ? { reviewerToken: options.reviewerToken } : {}),
+    ...(options.reviewImageId ? { reviewImageId: options.reviewImageId } : {}),
+    ...(options.reviewImagesUrl
+      ? { reviewImagesUrl: options.reviewImagesUrl }
+      : {}),
   };
 }
 

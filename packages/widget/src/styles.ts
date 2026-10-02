@@ -21,6 +21,9 @@ const themeDeclarations = Object.entries(THEME_DEFAULTS)
 // `all: initial` stops inherited page styles (fonts, colors, line height) from
 // crossing the shadow boundary; custom properties are not reset by `all`.
 export const WIDGET_CSS = `
+.popover.review-launcher {position:absolute;left:auto;top:auto;right:64px;bottom:0;display:flex;flex-direction:column;gap:8px;width:210px;padding:12px;}
+.review-launcher a {text-decoration:none;text-align:center;}
+
   :host {
     all: initial;
     display: contents;

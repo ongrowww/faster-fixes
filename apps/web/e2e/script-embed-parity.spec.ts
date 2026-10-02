@@ -1,3 +1,4 @@
+import { choosePageFeedback } from "./widget-launcher";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -161,6 +162,7 @@ test.describe("script embed style and labels", () => {
     );
 
     await start.click();
+    await choosePageFeedback(page);
     await page.locator("h1").click();
     const popover = page.locator('[part="popover"]');
     await expect(popover).toBeVisible();
@@ -208,6 +210,7 @@ test.describe("script embed style and labels", () => {
     });
 
     await start.click();
+    await choosePageFeedback(page);
     await page.locator("h1").click();
     const popover = page.locator('[part="popover"]');
     await expect(page.getByPlaceholder("Describe the issue...")).toBeFocused();
@@ -224,6 +227,7 @@ test.describe("script embed style and labels", () => {
     await page.goto(FIXTURE_PATH);
 
     await page.getByRole("button", { name: "Start feedback" }).click();
+    await choosePageFeedback(page);
     await page.locator("h1").click();
     await expect(page.getByPlaceholder("Describe the issue...")).toBeFocused();
     expect(

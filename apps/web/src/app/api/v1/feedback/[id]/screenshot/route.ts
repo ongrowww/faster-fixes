@@ -1,3 +1,4 @@
+import { findReviewImage } from "@/app/_domains/project/_services/find-review-image";
 /**
  * The widget API's HTTP boundary for a Feedback screenshot: Project resolution,
  * the Allowed origins match, the Reviewer token, the rate limit, the multipart
@@ -29,7 +30,10 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAllowedOrigin(req.headers, project.domain)) {
+  if (
+    !req.headers.get("x-review-image") &&
+    !isAllowedOrigin(req.headers, project.domain)
+  ) {
     return NextResponse.json({ error: "Origin not allowed" }, { status: 403 });
   }
 
@@ -38,6 +42,20 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   if (!reviewer) {
     return NextResponse.json(
       { error: "Invalid reviewer token" },
+      { status: 403 },
+    );
+  }
+
+  const reviewImagePublicId = req.headers.get("x-review-image");
+  const reviewImage = reviewImagePublicId
+    ? await findReviewImage({
+        publicId: reviewImagePublicId,
+        projectId: project.id,
+      })
+    : null;
+  if (reviewImagePublicId && !reviewImage) {
+    return NextResponse.json(
+      { error: "Invalid feedback context" },
       { status: 403 },
     );
   }
@@ -57,6 +75,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     await getFeedbackAwaitingScreenshot({
       feedbackId: id,
       projectId: project.id,
+      reviewImageId: reviewImage?.id ?? null,
     });
 
     let formData: FormData;

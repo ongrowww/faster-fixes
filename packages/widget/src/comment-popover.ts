@@ -1,3 +1,4 @@
+import type { VirtualElement } from "@floating-ui/dom";
 import type { Labels } from "@fasterfixes/core";
 
 import {
@@ -14,7 +15,7 @@ type CommentPopoverActions = {
 };
 
 export type CommentPopover = {
-  open: (reference: Element) => void;
+  open: (reference: Element | VirtualElement) => void;
   close: () => void;
 };
 
@@ -78,6 +79,7 @@ export function createCommentPopover(
   let fadeTimer: ReturnType<typeof setTimeout> | null = null;
   let submitting = false;
   let isOpen = false;
+  let unlockScroll: (() => void) | null = null;
 
   function render() {
     const empty = textarea.value.trim() === "";
@@ -96,6 +98,8 @@ export function createCommentPopover(
   function teardown() {
     stopAutoUpdate?.();
     stopAutoUpdate = null;
+    unlockScroll?.();
+    unlockScroll = null;
     if (fadeTimer !== null) clearTimeout(fadeTimer);
     fadeTimer = null;
     popover.remove();
@@ -152,8 +156,45 @@ export function createCommentPopover(
       render();
       container.appendChild(popover);
       stopAutoUpdate = anchorBelow(reference, popover);
-      textarea.focus();
+      unlockScroll = lockPageScroll(document);
+      textarea.focus({ preventScroll: true });
     },
     close: teardown,
+  };
+}
+
+function lockPageScroll(document: Document) {
+  const root = document.documentElement;
+  const overflow = root.style.overflow;
+  const gutter = root.style.scrollbarGutter;
+  const bodyOverflow = document.body.style.overflow;
+  const listening = new AbortController();
+  const preventScroll = (event: Event) => {
+    if (
+      event.target instanceof Element &&
+      event.target.closest("[data-ff-widget]")
+    ) {
+      return;
+    }
+    event.preventDefault();
+  };
+  root.style.scrollbarGutter = "stable";
+  root.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  document.addEventListener("wheel", preventScroll, {
+    capture: true,
+    passive: false,
+    signal: listening.signal,
+  });
+  document.addEventListener("touchmove", preventScroll, {
+    capture: true,
+    passive: false,
+    signal: listening.signal,
+  });
+  return () => {
+    listening.abort();
+    root.style.overflow = overflow;
+    root.style.scrollbarGutter = gutter;
+    document.body.style.overflow = bodyOverflow;
   };
 }

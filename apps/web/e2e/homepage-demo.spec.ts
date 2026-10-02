@@ -1,3 +1,4 @@
+import { choosePageFeedback } from "./widget-launcher";
 import { expect, test } from "@playwright/test";
 
 import { WIDGET_API_ORIGIN } from "./widget-api-stub";
@@ -36,6 +37,7 @@ test.describe("homepage demo", () => {
 
     await page.goto("/");
     await page.getByRole("button", { name: "Start feedback" }).click();
+    await choosePageFeedback(page);
     await page.locator("h1").first().click();
     await page
       .getByPlaceholder("Describe the issue...")
@@ -77,6 +79,7 @@ test.describe("homepage demo", () => {
     await expect(hint).toBeVisible({ timeout: 10_000 });
 
     await page.getByRole("button", { name: "Start feedback" }).click();
+    await choosePageFeedback(page);
 
     await expect(hint).toBeHidden();
   });

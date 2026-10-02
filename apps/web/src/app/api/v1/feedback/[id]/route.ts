@@ -1,3 +1,4 @@
+import { findReviewImage } from "@/app/_domains/project/_services/find-review-image";
 /**
  * The widget API's HTTP boundary for one Feedback: Project resolution, the
  * Allowed origins match, the Reviewer token, the rate limit, the body parse and
@@ -32,7 +33,10 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAllowedOrigin(req.headers, project.domain)) {
+  if (
+    !req.headers.get("x-review-image") &&
+    !isAllowedOrigin(req.headers, project.domain)
+  ) {
     return NextResponse.json({ error: "Origin not allowed" }, { status: 403 });
   }
 
@@ -41,6 +45,20 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   if (!reviewer) {
     return NextResponse.json(
       { error: "Invalid reviewer token" },
+      { status: 403 },
+    );
+  }
+
+  const reviewImagePublicId = req.headers.get("x-review-image");
+  const reviewImage = reviewImagePublicId
+    ? await findReviewImage({
+        publicId: reviewImagePublicId,
+        projectId: project.id,
+      })
+    : null;
+  if (reviewImagePublicId && !reviewImage) {
+    return NextResponse.json(
+      { error: "Invalid feedback context" },
       { status: 403 },
     );
   }
@@ -56,7 +74,11 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   try {
     // Existence comes before the body is read, as it always has: an unknown
     // Feedback with a broken payload answers 404, not 400.
-    await getProjectFeedback({ feedbackId: id, projectId: project.id });
+    await getProjectFeedback({
+      feedbackId: id,
+      projectId: project.id,
+      reviewImageId: reviewImage?.id ?? null,
+    });
 
     let body: unknown;
     try {
@@ -95,7 +117,10 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAllowedOrigin(req.headers, project.domain)) {
+  if (
+    !req.headers.get("x-review-image") &&
+    !isAllowedOrigin(req.headers, project.domain)
+  ) {
     return NextResponse.json({ error: "Origin not allowed" }, { status: 403 });
   }
 
@@ -104,6 +129,20 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
   if (!reviewer) {
     return NextResponse.json(
       { error: "Invalid reviewer token" },
+      { status: 403 },
+    );
+  }
+
+  const reviewImagePublicId = req.headers.get("x-review-image");
+  const reviewImage = reviewImagePublicId
+    ? await findReviewImage({
+        publicId: reviewImagePublicId,
+        projectId: project.id,
+      })
+    : null;
+  if (reviewImagePublicId && !reviewImage) {
+    return NextResponse.json(
+      { error: "Invalid feedback context" },
       { status: 403 },
     );
   }
@@ -117,7 +156,11 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
   }
 
   try {
-    await getProjectFeedback({ feedbackId: id, projectId: project.id });
+    await getProjectFeedback({
+      feedbackId: id,
+      projectId: project.id,
+      reviewImageId: reviewImage?.id ?? null,
+    });
     await deleteFeedback({ feedbackId: id });
 
     return new NextResponse(null, { status: 204 });

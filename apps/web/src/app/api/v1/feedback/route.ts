@@ -1,3 +1,4 @@
+import { findReviewImage } from "@/app/_domains/project/_services/find-review-image";
 import { isAllowedOrigin } from "@/app/_domains/project/_helpers/is-allowed-origin";
 import { findProjectByPublicId } from "@/app/_domains/project/_services/find-project-by-public-id";
 import { findReviewerByToken } from "@/app/_domains/project/_services/find-reviewer-by-token";
@@ -21,7 +22,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAllowedOrigin(req.headers, project.domain)) {
+  if (
+    !req.headers.get("x-review-image") &&
+    !isAllowedOrigin(req.headers, project.domain)
+  ) {
     return NextResponse.json({ error: "Origin not allowed" }, { status: 403 });
   }
 
@@ -30,6 +34,20 @@ export async function POST(req: NextRequest) {
   if (!reviewer) {
     return NextResponse.json(
       { error: "Invalid reviewer token" },
+      { status: 403 },
+    );
+  }
+
+  const reviewImagePublicId = req.headers.get("x-review-image");
+  const reviewImage = reviewImagePublicId
+    ? await findReviewImage({
+        publicId: reviewImagePublicId,
+        projectId: project.id,
+      })
+    : null;
+  if (reviewImagePublicId && !reviewImage) {
+    return NextResponse.json(
+      { error: "Invalid feedback context" },
       { status: 403 },
     );
   }
@@ -133,6 +151,8 @@ export async function POST(req: NextRequest) {
   const feedback = await createFeedback({
     projectId: project.id,
     reviewerId: reviewer.id,
+    reviewImage,
+    projectPublicId: project.publicId,
     screenshotId,
     data,
   });
@@ -147,7 +167,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAllowedOrigin(req.headers, project.domain)) {
+  if (
+    !req.headers.get("x-review-image") &&
+    !isAllowedOrigin(req.headers, project.domain)
+  ) {
     return NextResponse.json({ error: "Origin not allowed" }, { status: 403 });
   }
 
@@ -156,6 +179,20 @@ export async function GET(req: NextRequest) {
   if (!reviewer) {
     return NextResponse.json(
       { error: "Invalid reviewer token" },
+      { status: 403 },
+    );
+  }
+
+  const reviewImagePublicId = req.headers.get("x-review-image");
+  const reviewImage = reviewImagePublicId
+    ? await findReviewImage({
+        publicId: reviewImagePublicId,
+        projectId: project.id,
+      })
+    : null;
+  if (reviewImagePublicId && !reviewImage) {
+    return NextResponse.json(
+      { error: "Invalid feedback context" },
       { status: 403 },
     );
   }
@@ -173,7 +210,8 @@ export async function GET(req: NextRequest) {
 
   const feedback = await listFeedbacks({
     projectId: project.id,
-    pageUrl: url ?? undefined,
+    pageUrl: reviewImage ? undefined : (url ?? undefined),
+    reviewImageId: reviewImage?.id ?? null,
   });
 
   return NextResponse.json({ feedback });
